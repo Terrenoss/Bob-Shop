@@ -1,19 +1,54 @@
+
 import React from 'react';
 import { Product } from '../types';
 import { useApp } from '../App';
 import { Button } from './ui/Button';
-import { ShoppingBag } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { ShoppingBag, Edit2, Trash2 } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 
 interface ProductCardProps {
   product: Product;
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useApp();
+  const { addToCart, user, deleteProduct } = useApp();
+  const navigate = useNavigate();
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.preventDefault();
+    // Redirect to Admin with edit param
+    navigate(`/admin?editProduct=${product.id}`);
+  };
+
+  const handleDelete = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (confirm('Are you sure you want to delete this product?')) {
+        deleteProduct(product.id);
+    }
+  };
 
   return (
-    <div className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full">
+    <div className="group bg-white rounded-xl border border-gray-200 overflow-hidden hover:shadow-lg transition-all duration-300 flex flex-col h-full relative">
+      
+      {user?.role === 'admin' && (
+          <div className="absolute top-2 left-2 z-10 flex gap-2">
+              <button 
+                onClick={handleEdit}
+                className="bg-white/90 p-2 rounded-full shadow-sm text-gray-600 hover:text-blue-600 hover:scale-105 transition-all"
+                title="Edit Product"
+              >
+                  <Edit2 size={16} />
+              </button>
+              <button 
+                onClick={handleDelete}
+                className="bg-white/90 p-2 rounded-full shadow-sm text-gray-600 hover:text-red-600 hover:scale-105 transition-all"
+                title="Delete Product"
+              >
+                  <Trash2 size={16} />
+              </button>
+          </div>
+      )}
+
       <Link to={`/product/${product.id}`} className="aspect-square relative overflow-hidden bg-gray-100 block">
         <img 
           src={product.image} 
@@ -46,6 +81,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             size="sm" 
             onClick={() => addToCart(product, 1)}
             className="rounded-full !p-2.5 hover:bg-blue-600 hover:text-white transition-colors"
+            disabled={product.stock <= 0}
           >
             <ShoppingBag size={18} />
           </Button>

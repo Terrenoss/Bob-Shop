@@ -55,6 +55,19 @@ export interface Coupon {
   minOrder?: number;
 }
 
+export interface OrderStatusHistory {
+  status: Order['status'];
+  date: string;
+  note?: string;
+}
+
+export interface Address {
+  name: string;
+  line1: string;
+  city: string;
+  postalCode: string;
+}
+
 export interface Order {
   id: string;
   userId: string;
@@ -63,21 +76,21 @@ export interface Order {
   // Financials
   subtotal: number;
   shippingCost: number;
+  tax: number;
   discount: number;
   total: number;
   couponCode?: string;
   
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+  statusHistory: OrderStatusHistory[];
   date: string;
   
   // Shipping & Tracking
-  shippingAddress: {
-    name: string;
-    line1: string;
-    city: string;
-    postalCode: string;
-  };
+  shippingAddress: Address;
+  billingAddress?: Address;
+  
   trackingNumber?: string;
   carrier?: string;
   paymentMethod?: string;
+  internalNotes?: string; // For admin use
 }

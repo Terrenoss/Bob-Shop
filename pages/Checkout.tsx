@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import { useApp } from '../App';
 import { Button } from '../components/ui/Button';
-import { CheckCircle, CreditCard, Shield, Truck, Ticket } from 'lucide-react';
+import { CheckCircle, CreditCard, Shield, Truck, Ticket, Info } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
 import { couponsService } from '../services/mockNestService';
@@ -28,8 +28,11 @@ export const Checkout: React.FC = () => {
     postalCode: ''
   });
 
+  // Calculations
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const shipping = 4.99;
+  const taxRate = 0.08;
+  const estimatedTax = subtotal * taxRate;
   
   // Calculate Discount
   let discountAmount = 0;
@@ -43,7 +46,7 @@ export const Checkout: React.FC = () => {
   // Ensure discount doesn't exceed subtotal
   discountAmount = Math.min(discountAmount, subtotal);
 
-  const total = subtotal + shipping - discountAmount;
+  const total = subtotal + shipping + estimatedTax - discountAmount;
 
   const handleApplyCoupon = async () => {
       if (!couponCode) return;
@@ -74,6 +77,12 @@ export const Checkout: React.FC = () => {
         return;
     }
 
+    if (!formData.address || !formData.city || !formData.postalCode) {
+        toast.error("Please complete shipping details");
+        setStep('shipping');
+        return;
+    }
+
     setLoading(true);
     // Simulate Stripe processing delay
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -85,10 +94,18 @@ export const Checkout: React.FC = () => {
         total: total,
         subtotal: subtotal,
         shippingCost: shipping,
+        tax: estimatedTax,
         discount: discountAmount,
         couponCode: appliedCoupon?.code,
         status: 'pending',
         shippingAddress: {
+            name: `${formData.firstName} ${formData.lastName}`,
+            line1: formData.address,
+            city: formData.city,
+            postalCode: formData.postalCode
+        },
+        billingAddress: {
+            // Reusing shipping for billing for MVP
             name: `${formData.firstName} ${formData.lastName}`,
             line1: formData.address,
             city: formData.city,
@@ -290,6 +307,10 @@ export const Checkout: React.FC = () => {
                 <div className="flex justify-between text-gray-600">
                     <span>Shipping</span>
                     <span>${shipping.toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between text-gray-600">
+                    <span className="flex items-center gap-1">Estimated Tax <Info size={12}/></span>
+                    <span>${estimatedTax.toFixed(2)}</span>
                 </div>
                 {appliedCoupon && (
                     <div className="flex justify-between text-green-600 font-medium">

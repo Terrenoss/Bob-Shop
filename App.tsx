@@ -1,4 +1,5 @@
 
+
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
@@ -24,6 +25,8 @@ interface AppContextType {
   
   products: Product[];
   refreshProducts: () => Promise<void>;
+  deleteProduct: (id: string) => Promise<void>;
+  updateProduct: (id: string, updates: Partial<Product>) => Promise<void>;
   
   cart: CartItem[];
   addToCart: (product: Product, quantity: number, variants?: Record<string, string>) => void;
@@ -31,7 +34,7 @@ interface AppContextType {
   updateQuantity: (productId: string, quantity: number, variants?: Record<string, string>) => void;
   clearCart: () => void;
   
-  placeOrder: (orderData: Omit<Order, 'id' | 'date'>) => Promise<void>;
+  placeOrder: (orderData: Omit<Order, 'id' | 'date' | 'statusHistory'>) => Promise<void>;
   
   isCartOpen: boolean;
   setIsCartOpen: (isOpen: boolean) => void;
@@ -93,6 +96,18 @@ const App: React.FC = () => {
   const refreshProducts = async () => {
     const fetched = await productsService.findAll();
     setProducts(fetched);
+  };
+
+  const deleteProduct = async (id: string) => {
+    await productsService.delete(id);
+    await refreshProducts();
+    toast.success('Product deleted');
+  };
+
+  const updateProduct = async (id: string, updates: Partial<Product>) => {
+    await productsService.update(id, updates);
+    await refreshProducts();
+    toast.success('Product updated');
   };
 
   // Actions
@@ -177,11 +192,16 @@ const App: React.FC = () => {
 
   const clearCart = () => setCart([]);
 
-  const placeOrder = async (orderData: Omit<Order, 'id' | 'date'>) => {
+  const placeOrder = async (orderData: Omit<Order, 'id' | 'date' | 'statusHistory'>) => {
     const newOrder: Order = {
       ...orderData,
       id: `ord-${Math.floor(Math.random() * 1000000)}`,
-      date: new Date().toISOString()
+      date: new Date().toISOString(),
+      statusHistory: [{
+          status: 'pending',
+          date: new Date().toISOString(),
+          note: 'Order placed'
+      }]
     };
     await ordersService.create(newOrder);
     await refreshProducts(); // Update stock
@@ -191,7 +211,7 @@ const App: React.FC = () => {
   return (
     <AppContext.Provider value={{
       user, login, register, logout,
-      products, refreshProducts,
+      products, refreshProducts, deleteProduct, updateProduct,
       cart, addToCart, removeFromCart, updateQuantity, clearCart,
       placeOrder,
       isCartOpen, setIsCartOpen,

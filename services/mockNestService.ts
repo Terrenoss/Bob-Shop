@@ -1,5 +1,6 @@
 
-import { Product, Order, User, ProductSource, Coupon } from '../types';
+
+import { Product, Order, User, ProductSource, Coupon, OrderStatusHistory } from '../types';
 
 // --- Simulated Database (LocalStorage) ---
 
@@ -137,8 +138,23 @@ class OrdersService {
     return orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
+  async findOne(orderId: string): Promise<Order | undefined> {
+    const orders = await this.findAll();
+    return orders.find(o => o.id === orderId);
+  }
+
   async create(order: Order): Promise<Order> {
     const orders = await this.findAll();
+    
+    // Initialize Status History
+    if (!order.statusHistory) {
+      order.statusHistory = [{
+        status: order.status,
+        date: new Date().toISOString(),
+        note: 'Order placed'
+      }];
+    }
+
     const newOrders = [order, ...orders];
     localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(newOrders));
     
@@ -157,18 +173,58 @@ class OrdersService {
     return order;
   }
 
-  async updateStatus(orderId: string, status: Order['status'], tracking?: { number: string; carrier: string }): Promise<Order | undefined> {
+  async update(orderId: string, updates: Partial<Order>): Promise<Order | undefined> {
     const orders = await this.findAll();
     const index = orders.findIndex(o => o.id === orderId);
     if (index === -1) return undefined;
 
-    orders[index].status = status;
-    if (tracking) {
-      orders[index].trackingNumber = tracking.number;
-      orders[index].carrier = tracking.carrier;
+    const currentOrder = orders[index];
+    const updatedOrder = { ...currentOrder, ...updates };
+
+    // Check if status changed to record history
+    if (updates.status && updates.status !== currentOrder.status) {
+         updatedOrder.statusHistory.push({
+            status: updates.status,
+            date: new Date().toISOString(),
+            note: updates.internalNotes || 'Status updated via Admin'
+         });
     }
+
+    orders[index] = updatedOrder;
     localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders));
-    return orders[index];
+    return updatedOrder;
+  }
+
+  async refund(orderId: string): Promise<Order | undefined> {
+      const orders = await this.findAll();
+      const index = orders.findIndex(o => o.id === orderId);
+      if (index === -1) return undefined;
+
+      const currentOrder = orders[index];
+      
+      // Prevent double refund logic could go here
+      
+      currentOrder.status = 'cancelled';
+      currentOrder.statusHistory.push({
+          status: 'cancelled',
+          date: new Date().toISOString(),
+          note: 'Refund processed by Admin'
+      });
+      
+      // Restock items (Simplified)
+      const prodService = new ProductsService();
+      const allProducts = await prodService.findAll();
+      for (const item of currentOrder.items) {
+          const pIndex = allProducts.findIndex(p => p.id === item.id);
+          if (pIndex !== -1) {
+              allProducts[pIndex].stock += item.quantity;
+          }
+      }
+      localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(allProducts));
+      
+      orders[index] = currentOrder;
+      localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders));
+      return currentOrder;
   }
 }
 
