@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, createContext, useContext } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Navbar } from './components/Navbar';
@@ -6,6 +7,7 @@ import { ProductDetails } from './pages/ProductDetails';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { Checkout } from './pages/Checkout';
 import { Orders } from './pages/Orders';
+import { Contact } from './pages/Contact';
 import { CartDrawer } from './components/CartDrawer';
 import { AuthModal } from './components/AuthModal';
 import { Product, CartItem, User, Order } from './types';
@@ -29,7 +31,7 @@ interface AppContextType {
   updateQuantity: (productId: string, quantity: number, variants?: Record<string, string>) => void;
   clearCart: () => void;
   
-  placeOrder: (orderData: Omit<Order, 'id' | 'date' | 'status'>) => Promise<void>;
+  placeOrder: (orderData: Omit<Order, 'id' | 'date'>) => Promise<void>;
   
   isCartOpen: boolean;
   setIsCartOpen: (isOpen: boolean) => void;
@@ -175,12 +177,11 @@ const App: React.FC = () => {
 
   const clearCart = () => setCart([]);
 
-  const placeOrder = async (orderData: Omit<Order, 'id' | 'date' | 'status'>) => {
+  const placeOrder = async (orderData: Omit<Order, 'id' | 'date'>) => {
     const newOrder: Order = {
       ...orderData,
       id: `ord-${Math.floor(Math.random() * 1000000)}`,
-      date: new Date().toISOString(),
-      status: 'pending'
+      date: new Date().toISOString()
     };
     await ordersService.create(newOrder);
     await refreshProducts(); // Update stock
@@ -201,6 +202,7 @@ const App: React.FC = () => {
           <Routes>
             <Route path="/" element={<Shop />} />
             <Route path="/product/:id" element={<ProductDetails />} />
+            <Route path="/contact" element={<Contact />} />
             <Route path="/admin" element={user?.role === 'admin' ? <AdminDashboard /> : <Navigate to="/" />} />
             <Route path="/checkout" element={<Checkout />} />
             <Route path="/orders" element={user ? <Orders /> : <Navigate to="/" />} />

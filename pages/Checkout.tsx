@@ -1,15 +1,23 @@
+
 import React, { useState } from 'react';
 import { useApp } from '../App';
 import { Button } from '../components/ui/Button';
-import { CheckCircle, CreditCard, Shield, Truck } from 'lucide-react';
+import { CheckCircle, CreditCard, Shield, Truck, Ticket } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
+import { couponsService } from '../services/mockNestService';
+import { Coupon } from '../types';
 
 export const Checkout: React.FC = () => {
   const { cart, user, placeOrder, setIsAuthModalOpen } = useApp();
   const [step, setStep] = useState<'shipping' | 'payment' | 'success'>('shipping');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+
+  // Coupon State
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -22,7 +30,42 @@ export const Checkout: React.FC = () => {
 
   const subtotal = cart.reduce((acc, item) => acc + (item.price * item.quantity), 0);
   const shipping = 4.99;
-  const total = subtotal + shipping;
+  
+  // Calculate Discount
+  let discountAmount = 0;
+  if (appliedCoupon) {
+      if (appliedCoupon.type === 'percent') {
+          discountAmount = (subtotal * appliedCoupon.value) / 100;
+      } else {
+          discountAmount = appliedCoupon.value;
+      }
+  }
+  // Ensure discount doesn't exceed subtotal
+  discountAmount = Math.min(discountAmount, subtotal);
+
+  const total = subtotal + shipping - discountAmount;
+
+  const handleApplyCoupon = async () => {
+      if (!couponCode) return;
+      setIsValidatingCoupon(true);
+      const coupon = await couponsService.validate(couponCode);
+      setIsValidatingCoupon(false);
+
+      if (!coupon) {
+          toast.error("Invalid coupon code");
+          setAppliedCoupon(null);
+          return;
+      }
+
+      if (coupon.minOrder && subtotal < coupon.minOrder) {
+          toast.error(`Minimum order of $${coupon.minOrder} required`);
+          setAppliedCoupon(null);
+          return;
+      }
+
+      setAppliedCoupon(coupon);
+      toast.success("Coupon applied!");
+  };
 
   const handlePayment = async () => {
     if (!user) {
@@ -35,17 +78,23 @@ export const Checkout: React.FC = () => {
     // Simulate Stripe processing delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Create Order in Mock Backend
+    // Create Order in Mock Backend with full details
     await placeOrder({
         userId: user.id,
-        items: [...cart], // copy cart items
+        items: [...cart], 
         total: total,
+        subtotal: subtotal,
+        shippingCost: shipping,
+        discount: discountAmount,
+        couponCode: appliedCoupon?.code,
+        status: 'pending',
         shippingAddress: {
             name: `${formData.firstName} ${formData.lastName}`,
             line1: formData.address,
             city: formData.city,
             postalCode: formData.postalCode
-        }
+        },
+        paymentMethod: 'Credit Card (Simulated)'
     });
 
     setLoading(false);
@@ -202,6 +251,37 @@ export const Checkout: React.FC = () => {
                 </div>
             ))}
             </div>
+            
+            {/* Coupon Code Input */}
+            <div className="mb-6">
+                <div className="flex gap-2">
+                    <input 
+                        type="text" 
+                        placeholder="Promo Code (e.g. WELCOME10)" 
+                        className="flex-grow p-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-blue-500 uppercase"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value)}
+                    />
+                    <Button 
+                        size="sm" 
+                        variant="secondary" 
+                        onClick={handleApplyCoupon}
+                        disabled={isValidatingCoupon || !couponCode}
+                    >
+                        Apply
+                    </Button>
+                </div>
+                {appliedCoupon && (
+                    <div className="flex items-center justify-between mt-2 text-xs text-green-600 bg-green-50 p-2 rounded">
+                        <div className="flex items-center gap-1">
+                            <Ticket size={12} />
+                            <span>Coupon applied: {appliedCoupon.code}</span>
+                        </div>
+                        <button onClick={() => setAppliedCoupon(null)} className="hover:text-green-800 font-bold">✕</button>
+                    </div>
+                )}
+            </div>
+
             <div className="border-t border-gray-100 pt-4 space-y-2">
                 <div className="flex justify-between text-gray-600">
                     <span>Subtotal</span>
@@ -211,6 +291,12 @@ export const Checkout: React.FC = () => {
                     <span>Shipping</span>
                     <span>${shipping.toFixed(2)}</span>
                 </div>
+                {appliedCoupon && (
+                    <div className="flex justify-between text-green-600 font-medium">
+                        <span>Discount</span>
+                        <span>-${discountAmount.toFixed(2)}</span>
+                    </div>
+                )}
                 <div className="flex justify-between font-bold text-xl text-gray-900 pt-4 border-t border-gray-100 mt-2">
                     <span>Total</span>
                     <span>${total.toFixed(2)}</span>

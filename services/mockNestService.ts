@@ -1,4 +1,5 @@
-import { Product, Order, User, ProductSource } from '../types';
+
+import { Product, Order, User, ProductSource, Coupon } from '../types';
 
 // --- Simulated Database (LocalStorage) ---
 
@@ -54,6 +55,12 @@ const INITIAL_PRODUCTS: Product[] = [
 const INITIAL_USERS: User[] = [
   { id: 'admin-01', name: 'Bob Admin', email: 'bob@shop.com', role: 'admin', password: 'admin' },
   { id: 'cust-01', name: 'Alex Customer', email: 'alex@gmail.com', role: 'customer', password: '123' }
+];
+
+const MOCK_COUPONS: Coupon[] = [
+  { code: 'WELCOME10', type: 'percent', value: 10, minOrder: 0 },
+  { code: 'SAVE20', type: 'fixed', value: 20, minOrder: 100 },
+  { code: 'BOBSHOP', type: 'percent', value: 15, minOrder: 50 },
 ];
 
 // --- NestJS Service Simulation ---
@@ -150,18 +157,30 @@ class OrdersService {
     return order;
   }
 
-  async updateStatus(orderId: string, status: Order['status']): Promise<Order | undefined> {
+  async updateStatus(orderId: string, status: Order['status'], tracking?: { number: string; carrier: string }): Promise<Order | undefined> {
     const orders = await this.findAll();
     const index = orders.findIndex(o => o.id === orderId);
     if (index === -1) return undefined;
 
     orders[index].status = status;
+    if (tracking) {
+      orders[index].trackingNumber = tracking.number;
+      orders[index].carrier = tracking.carrier;
+    }
     localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders));
     return orders[index];
   }
+}
+
+class CouponsService {
+    async validate(code: string): Promise<Coupon | null> {
+        const coupon = MOCK_COUPONS.find(c => c.code.toUpperCase() === code.toUpperCase());
+        return coupon || null;
+    }
 }
 
 // Export Singleton Instances
 export const productsService = new ProductsService();
 export const ordersService = new OrdersService();
 export const authService = new AuthService();
+export const couponsService = new CouponsService();

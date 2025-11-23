@@ -1,8 +1,9 @@
+
 import React, { useEffect, useState } from 'react';
 import { useApp } from '../App';
 import { Order } from '../types';
 import { ordersService } from '../services/mockNestService';
-import { Package, Clock, CheckCircle, Truck, ShoppingBag } from 'lucide-react';
+import { Package, Clock, CheckCircle, Truck, Info } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { useNavigate } from 'react-router-dom';
 
@@ -65,15 +66,15 @@ export const Orders: React.FC = () => {
               <div className="p-4 border-b border-gray-100 bg-gray-50 flex flex-wrap gap-4 justify-between items-center">
                 <div className="flex gap-4 text-sm">
                    <div>
-                      <p className="text-gray-500">Order Placed</p>
+                      <p className="text-gray-500 text-xs uppercase font-semibold">Placed</p>
                       <p className="font-medium text-gray-900">{new Date(order.date).toLocaleDateString()}</p>
                    </div>
                    <div>
-                      <p className="text-gray-500">Total</p>
+                      <p className="text-gray-500 text-xs uppercase font-semibold">Total</p>
                       <p className="font-medium text-gray-900">${order.total.toFixed(2)}</p>
                    </div>
                    <div>
-                      <p className="text-gray-500">Order #</p>
+                      <p className="text-gray-500 text-xs uppercase font-semibold">Order #</p>
                       <p className="font-medium text-gray-900">{order.id}</p>
                    </div>
                 </div>
@@ -82,6 +83,14 @@ export const Orders: React.FC = () => {
                     {order.status}
                 </div>
               </div>
+
+              {/* Order Tracking Info */}
+              {order.trackingNumber && (
+                  <div className="bg-blue-50 px-4 py-2 text-sm text-blue-800 flex items-center gap-2">
+                      <Truck size={16} />
+                      <span className="font-semibold">Tracking:</span> {order.trackingNumber} ({order.carrier || 'Global Post'})
+                  </div>
+              )}
               
               <div className="p-4">
                 {order.items.map((item, idx) => (
@@ -97,6 +106,16 @@ export const Orders: React.FC = () => {
                         </div>
                     </div>
                 ))}
+              </div>
+
+              {/* Order Footer with breakdown */}
+              <div className="px-4 py-3 bg-gray-50 border-t border-gray-100 flex justify-end">
+                   <div className="text-sm text-right space-y-1">
+                       <p className="text-gray-500">Subtotal: ${order.subtotal?.toFixed(2) || '0.00'}</p>
+                       <p className="text-gray-500">Shipping: ${order.shippingCost?.toFixed(2) || '0.00'}</p>
+                       {order.discount > 0 && <p className="text-green-600">Discount: -${order.discount.toFixed(2)}</p>}
+                       <p className="font-bold text-gray-900 pt-1 border-t border-gray-200 mt-1">Total: ${order.total.toFixed(2)}</p>
+                   </div>
               </div>
             </div>
           ))}

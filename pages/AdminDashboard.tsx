@@ -1,10 +1,12 @@
+
 import React, { useState, useEffect } from 'react';
 import { useApp } from '../App';
 import { SupplierProduct, ProductSource, Order, Product } from '../types';
 import { optimizeProductListing } from '../services/geminiService';
 import { productsService, ordersService } from '../services/mockNestService';
 import { Button } from '../components/ui/Button';
-import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Sparkles, Package, ClipboardList, Trash2, Edit2, Archive, CheckSquare } from 'lucide-react';
+import { ProductFormModal } from '../components/ProductFormModal';
+import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Sparkles, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 
 // Mock Supplier Data (AliExpress/Alibaba Simulation)
@@ -43,6 +45,10 @@ export const AdminDashboard: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'suppliers' | 'inventory' | 'orders'>('suppliers');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
+
+  // Product Edit State
+  const [isProductModalOpen, setIsProductModalOpen] = useState(false);
+  const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 
   useEffect(() => {
       fetchData();
@@ -100,8 +106,31 @@ export const AdminDashboard: React.FC = () => {
       }
   };
 
+  const handleEditProduct = (product: Product) => {
+      setEditingProduct(product);
+      setIsProductModalOpen(true);
+  };
+
+  const handleSaveProduct = async (updatedProduct: Partial<Product>) => {
+      if (editingProduct) {
+          await productsService.update(editingProduct.id, updatedProduct);
+          toast.success("Product updated");
+      } else {
+          // Logic for creating new product manually could go here
+      }
+      refreshProducts();
+  };
+
   const handleUpdateOrderStatus = async (orderId: string, status: Order['status']) => {
-      await ordersService.updateStatus(orderId, status);
+      let tracking = undefined;
+      
+      if (status === 'shipped') {
+          const trackingNum = prompt("Enter tracking number:");
+          if (!trackingNum) return; // Cancel if no tracking number
+          tracking = { number: trackingNum, carrier: 'Global Post' };
+      }
+
+      await ordersService.updateStatus(orderId, status, tracking);
       fetchData();
       toast.success(`Order marked as ${status}`);
   };
@@ -257,7 +286,7 @@ export const AdminDashboard: React.FC = () => {
                             </td>
                             <td className="p-4">${p.price.toFixed(2)}</td>
                             <td className="p-4 text-right">
-                                <button className="p-2 text-gray-400 hover:text-blue-600 mr-2">
+                                <button onClick={() => handleEditProduct(p)} className="p-2 text-gray-400 hover:text-blue-600 mr-2">
                                     <Edit2 size={16} />
                                 </button>
                                 <button onClick={() => handleDeleteProduct(p.id)} className="p-2 text-gray-400 hover:text-red-600">
@@ -279,8 +308,9 @@ export const AdminDashboard: React.FC = () => {
                         <th className="p-4">Order ID</th>
                         <th className="p-4">Date</th>
                         <th className="p-4">Total</th>
+                        <th className="p-4">Tracking</th>
                         <th className="p-4">Status</th>
-                        <th className="p-4 text-right">Fulfillment</th>
+                        <th className="p-4 text-right">Action</th>
                     </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -289,6 +319,9 @@ export const AdminDashboard: React.FC = () => {
                                 <td className="p-4 font-mono font-medium">{order.id}</td>
                                 <td className="p-4">{new Date(order.date).toLocaleDateString()}</td>
                                 <td className="p-4 font-bold">${order.total.toFixed(2)}</td>
+                                <td className="p-4 font-mono text-xs">
+                                    {order.trackingNumber || <span className="text-gray-400">-</span>}
+                                </td>
                                 <td className="p-4">
                                     <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${
                                         order.status === 'delivered' ? 'bg-green-100 text-green-800' :
@@ -301,18 +334,13 @@ export const AdminDashboard: React.FC = () => {
                                 <td className="p-4 text-right">
                                     {order.status === 'pending' && (
                                         <Button size="sm" onClick={() => handleUpdateOrderStatus(order.id, 'shipped')}>
-                                            Mark Shipped
+                                            <Truck size={14} className="mr-1" /> Ship
                                         </Button>
                                     )}
                                     {order.status === 'shipped' && (
                                         <Button size="sm" variant="secondary" onClick={() => handleUpdateOrderStatus(order.id, 'delivered')}>
-                                            Mark Delivered
+                                            <CheckSquare size={14} className="mr-1" /> Complete
                                         </Button>
-                                    )}
-                                    {order.status === 'delivered' && (
-                                        <span className="text-green-600 text-xs font-bold flex items-center justify-end gap-1">
-                                            <CheckSquare size={14} /> Completed
-                                        </span>
                                     )}
                                 </td>
                              </tr>
@@ -328,6 +356,13 @@ export const AdminDashboard: React.FC = () => {
         )}
 
       </div>
+
+      <ProductFormModal 
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        onSubmit={handleSaveProduct}
+        initialData={editingProduct}
+      />
     </div>
   );
 };

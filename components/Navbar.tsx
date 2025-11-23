@@ -1,11 +1,23 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ShoppingCart, User as UserIcon, LogOut, LayoutDashboard, Package, Search } from 'lucide-react';
+
+import React, { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { ShoppingCart, User as UserIcon, LogOut, LayoutDashboard, Package, Search, HelpCircle } from 'lucide-react';
 import { useApp } from '../App';
 
 export const Navbar: React.FC = () => {
   const { user, cart, setIsCartOpen, setIsAuthModalOpen, logout } = useApp();
   const cartCount = cart.reduce((acc, item) => acc + item.quantity, 0);
+  const navigate = useNavigate();
+  const [searchTerm, setSearchTerm] = useState('');
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchTerm.trim()) {
+      navigate(`/?q=${encodeURIComponent(searchTerm)}`);
+    } else {
+      navigate('/');
+    }
+  };
 
   return (
     <nav className="fixed top-0 w-full bg-white/80 backdrop-blur-md border-b border-gray-200 z-50 h-16 transition-all">
@@ -18,19 +30,26 @@ export const Navbar: React.FC = () => {
           <span className="text-xl font-bold tracking-tight text-gray-900 group-hover:text-blue-700 transition-colors">Bob-Shop</span>
         </Link>
 
-        {/* Search Bar (Visual Only) */}
-        <div className="hidden md:flex items-center flex-1 max-w-md mx-8 relative">
+        {/* Search Bar */}
+        <form onSubmit={handleSearch} className="hidden md:flex items-center flex-1 max-w-md mx-8 relative">
            <Search className="absolute left-3 text-gray-400" size={18} />
            <input 
              type="text" 
+             value={searchTerm}
+             onChange={(e) => setSearchTerm(e.target.value)}
              placeholder="Search products..." 
              className="w-full pl-10 pr-4 py-2 bg-gray-100 border-transparent focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-200 rounded-full text-sm outline-none transition-all"
            />
-        </div>
+        </form>
 
         {/* Actions */}
         <div className="flex items-center gap-3 md:gap-4">
           
+          <Link to="/contact" className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-600 hover:text-blue-600 rounded-lg transition-colors">
+            <HelpCircle size={18} />
+            Contact
+          </Link>
+
           {user?.role === 'admin' && (
             <Link to="/admin" className="hidden md:flex items-center gap-1.5 px-3 py-1.5 text-sm font-medium text-gray-700 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition-colors">
               <LayoutDashboard size={18} />

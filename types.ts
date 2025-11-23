@@ -1,3 +1,5 @@
+
+
 export enum ProductSource {
   ALIEXPRESS = 'AliExpress',
   ALIBABA = 'Alibaba',
@@ -46,17 +48,36 @@ export interface User {
   password?: string; // Only for mock auth logic
 }
 
+export interface Coupon {
+  code: string;
+  type: 'percent' | 'fixed';
+  value: number;
+  minOrder?: number;
+}
+
 export interface Order {
   id: string;
   userId: string;
   items: CartItem[];
+  
+  // Financials
+  subtotal: number;
+  shippingCost: number;
+  discount: number;
   total: number;
+  couponCode?: string;
+  
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   date: string;
+  
+  // Shipping & Tracking
   shippingAddress: {
     name: string;
     line1: string;
     city: string;
     postalCode: string;
   };
+  trackingNumber?: string;
+  carrier?: string;
+  paymentMethod?: string;
 }
