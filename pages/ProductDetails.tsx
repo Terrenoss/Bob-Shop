@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useApp } from '../App';
 import { Product } from '../types';
 import { Button } from '../components/ui/Button';
-import { ShoppingBag, ArrowLeft, Truck, ShieldCheck, Star } from 'lucide-react';
+import { ShoppingBag, ArrowLeft, Truck, ShieldCheck, Star, AlertCircle } from 'lucide-react';
 import { productsService } from '../services/mockNestService';
 
 export const ProductDetails: React.FC = () => {
@@ -12,16 +12,31 @@ export const ProductDetails: React.FC = () => {
   const { addToCart } = useApp();
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
+  const [selectedVariants, setSelectedVariants] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const fetchProduct = async () => {
       if (!id) return;
       const found = await productsService.findOne(id);
       setProduct(found || null);
+      
+      // Select first option for each variant by default
+      if (found && found.variants) {
+          const defaults: Record<string, string> = {};
+          found.variants.forEach(v => {
+              if (v.options.length > 0) defaults[v.name] = v.options[0];
+          });
+          setSelectedVariants(defaults);
+      }
+      
       setLoading(false);
     };
     fetchProduct();
   }, [id]);
+
+  const handleVariantChange = (name: string, value: string) => {
+      setSelectedVariants(prev => ({ ...prev, [name]: value }));
+  };
 
   if (loading) {
       return (
@@ -96,6 +111,47 @@ export const ProductDetails: React.FC = () => {
                     {product.description}
                 </p>
 
+                {/* Variants Selection */}
+                {product.variants && product.variants.length > 0 && (
+                    <div className="space-y-4 mb-8">
+                        {product.variants.map(variant => (
+                            <div key={variant.name}>
+                                <label className="text-sm font-semibold text-gray-900 mb-2 block">
+                                    {variant.name}: <span className="font-normal text-gray-500">{selectedVariants[variant.name]}</span>
+                                </label>
+                                <div className="flex flex-wrap gap-2">
+                                    {variant.options.map(option => (
+                                        <button
+                                            key={option}
+                                            onClick={() => handleVariantChange(variant.name, option)}
+                                            className={`px-4 py-2 rounded-lg text-sm font-medium transition-all ${
+                                                selectedVariants[variant.name] === option
+                                                ? 'bg-gray-900 text-white shadow-md'
+                                                : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                                            }`}
+                                        >
+                                            {option}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                {/* Stock Indicator */}
+                <div className="flex items-center gap-2 mb-8 text-sm">
+                    {product.stock > 0 ? (
+                        <span className="text-green-600 font-medium bg-green-50 px-2 py-1 rounded flex items-center gap-1">
+                             <div className="w-2 h-2 rounded-full bg-green-600"></div> In Stock ({product.stock})
+                        </span>
+                    ) : (
+                        <span className="text-red-600 font-medium bg-red-50 px-2 py-1 rounded flex items-center gap-1">
+                             <AlertCircle size={14} /> Out of Stock
+                        </span>
+                    )}
+                </div>
+
                 <div className="space-y-4 mb-8">
                     <div className="flex items-start gap-3">
                         <Truck className="text-green-600 mt-1" size={20} />
@@ -117,10 +173,11 @@ export const ProductDetails: React.FC = () => {
             <div className="pt-8 border-t border-gray-100 flex gap-4">
                 <Button 
                   size="lg" 
-                  onClick={() => addToCart(product)} 
+                  onClick={() => addToCart(product, 1, selectedVariants)} 
                   className="flex-grow text-lg h-14"
+                  disabled={product.stock <= 0}
                 >
-                   <ShoppingBag className="mr-2" /> Add to Cart
+                   <ShoppingBag className="mr-2" /> {product.stock > 0 ? 'Add to Cart' : 'Sold Out'}
                 </Button>
             </div>
           </div>

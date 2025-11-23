@@ -5,6 +5,7 @@ import { Product, Order, User, ProductSource } from '../types';
 const DB_KEYS = {
   PRODUCTS: 'bob-shop-db-products',
   ORDERS: 'bob-shop-db-orders',
+  USERS: 'bob-shop-db-users',
 };
 
 // Initial Seed Data
@@ -19,7 +20,8 @@ const INITIAL_PRODUCTS: Product[] = [
     image: 'https://picsum.photos/400/400?random=1',
     source: ProductSource.LOCAL,
     isPublished: true,
-    stock: 50
+    stock: 50,
+    variants: [{ name: 'Color', options: ['Sunset Red', 'Rainbow', 'Sunlight'] }]
   },
   {
     id: '2',
@@ -31,7 +33,8 @@ const INITIAL_PRODUCTS: Product[] = [
     image: 'https://picsum.photos/400/400?random=2',
     source: ProductSource.LOCAL,
     isPublished: true,
-    stock: 12
+    stock: 12,
+    variants: [{ name: 'Strap', options: ['Leather Black', 'Leather Brown', 'Metal'] }]
   },
   {
     id: '3',
@@ -43,11 +46,43 @@ const INITIAL_PRODUCTS: Product[] = [
     image: 'https://picsum.photos/400/400?random=3',
     source: ProductSource.LOCAL,
     isPublished: true,
-    stock: 100
+    stock: 100,
+    variants: [{ name: 'Color', options: ['White', 'Black'] }]
   }
 ];
 
+const INITIAL_USERS: User[] = [
+  { id: 'admin-01', name: 'Bob Admin', email: 'bob@shop.com', role: 'admin', password: 'admin' },
+  { id: 'cust-01', name: 'Alex Customer', email: 'alex@gmail.com', role: 'customer', password: '123' }
+];
+
 // --- NestJS Service Simulation ---
+
+class AuthService {
+  async findOne(email: string): Promise<User | undefined> {
+    const data = localStorage.getItem(DB_KEYS.USERS);
+    const users: User[] = data ? JSON.parse(data) : INITIAL_USERS;
+    return users.find(u => u.email === email);
+  }
+
+  async login(email: string): Promise<User | undefined> {
+    return this.findOne(email);
+  }
+
+  async register(user: Omit<User, 'id'>): Promise<User> {
+    const data = localStorage.getItem(DB_KEYS.USERS);
+    const users: User[] = data ? JSON.parse(data) : INITIAL_USERS;
+    
+    if (users.find(u => u.email === user.email)) {
+      throw new Error('User already exists');
+    }
+
+    const newUser = { ...user, id: `user-${Date.now()}` };
+    users.push(newUser);
+    localStorage.setItem(DB_KEYS.USERS, JSON.stringify(users));
+    return newUser;
+  }
+}
 
 class ProductsService {
   async findAll(): Promise<Product[]> {
@@ -66,6 +101,23 @@ class ProductsService {
     localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(newProducts));
     return product;
   }
+
+  async delete(id: string): Promise<void> {
+    const products = await this.findAll();
+    const newProducts = products.filter(p => p.id !== id);
+    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(newProducts));
+  }
+
+  async update(id: string, updates: Partial<Product>): Promise<Product | undefined> {
+      const products = await this.findAll();
+      const index = products.findIndex(p => p.id === id);
+      if (index === -1) return undefined;
+      
+      const updatedProduct = { ...products[index], ...updates };
+      products[index] = updatedProduct;
+      localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(products));
+      return updatedProduct;
+  }
 }
 
 class OrdersService {
@@ -75,17 +127,41 @@ class OrdersService {
     if (userId) {
       return orders.filter(o => o.userId === userId).sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
     }
-    return orders; // Admin sees all
+    return orders.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
   }
 
   async create(order: Order): Promise<Order> {
     const orders = await this.findAll();
     const newOrders = [order, ...orders];
     localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(newOrders));
+    
+    // Decrement stock
+    const prodService = new ProductsService();
+    const allProducts = await prodService.findAll();
+    
+    for (const item of order.items) {
+        const pIndex = allProducts.findIndex(p => p.id === item.id);
+        if (pIndex !== -1) {
+            allProducts[pIndex].stock = Math.max(0, allProducts[pIndex].stock - item.quantity);
+        }
+    }
+    localStorage.setItem(DB_KEYS.PRODUCTS, JSON.stringify(allProducts));
+
     return order;
+  }
+
+  async updateStatus(orderId: string, status: Order['status']): Promise<Order | undefined> {
+    const orders = await this.findAll();
+    const index = orders.findIndex(o => o.id === orderId);
+    if (index === -1) return undefined;
+
+    orders[index].status = status;
+    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders));
+    return orders[index];
   }
 }
 
 // Export Singleton Instances
 export const productsService = new ProductsService();
 export const ordersService = new OrdersService();
+export const authService = new AuthService();

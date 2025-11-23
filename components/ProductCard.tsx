@@ -44,7 +44,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
           <Button 
             variant="secondary" 
             size="sm" 
-            onClick={() => addToCart(product)}
+            onClick={() => addToCart(product, 1)}
             className="rounded-full !p-2.5 hover:bg-blue-600 hover:text-white transition-colors"
           >
             <ShoppingBag size={18} />

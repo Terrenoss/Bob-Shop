@@ -10,22 +10,23 @@ import { CartDrawer } from './components/CartDrawer';
 import { AuthModal } from './components/AuthModal';
 import { Product, CartItem, User, Order } from './types';
 import { Toaster, toast } from 'react-hot-toast';
-import { productsService, ordersService } from './services/mockNestService';
+import { productsService, ordersService, authService } from './services/mockNestService';
 
 // --- Context Definitions ---
 
 interface AppContextType {
   user: User | null;
-  login: (role: 'admin' | 'customer') => void;
+  login: (email: string) => Promise<boolean>;
+  register: (user: Omit<User, 'id'>) => Promise<boolean>;
   logout: () => void;
   
   products: Product[];
   refreshProducts: () => Promise<void>;
   
   cart: CartItem[];
-  addToCart: (product: Product) => void;
-  removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  addToCart: (product: Product, quantity: number, variants?: Record<string, string>) => void;
+  removeFromCart: (productId: string, variants?: Record<string, string>) => void;
+  updateQuantity: (productId: string, quantity: number, variants?: Record<string, string>) => void;
   clearCart: () => void;
   
   placeOrder: (orderData: Omit<Order, 'id' | 'date' | 'status'>) => Promise<void>;
@@ -93,17 +94,30 @@ const App: React.FC = () => {
   };
 
   // Actions
-  const login = (role: 'admin' | 'customer') => {
-    const newUser: User = {
-      id: role === 'admin' ? 'admin-01' : 'cust-01',
-      name: role === 'admin' ? 'Bob The Admin' : 'Alex Shopper',
-      email: role === 'admin' ? 'bob@shop.com' : 'alex@gmail.com',
-      role
-    };
-    setUser(newUser);
-    localStorage.setItem('bob-shop-user', JSON.stringify(newUser));
-    setIsAuthModalOpen(false);
-    toast.success(`Welcome back, ${newUser.name}!`);
+  const login = async (email: string) => {
+    const foundUser = await authService.login(email);
+    if (foundUser) {
+        setUser(foundUser);
+        localStorage.setItem('bob-shop-user', JSON.stringify(foundUser));
+        setIsAuthModalOpen(false);
+        toast.success(`Welcome back, ${foundUser.name}!`);
+        return true;
+    }
+    return false;
+  };
+
+  const register = async (userData: Omit<User, 'id'>) => {
+      try {
+          const newUser = await authService.register(userData);
+          setUser(newUser);
+          localStorage.setItem('bob-shop-user', JSON.stringify(newUser));
+          setIsAuthModalOpen(false);
+          toast.success('Account created successfully!');
+          return true;
+      } catch (e) {
+          toast.error("User already exists");
+          return false;
+      }
   };
 
   const logout = () => {
@@ -113,25 +127,50 @@ const App: React.FC = () => {
     toast('Logged out successfully');
   };
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product, quantity = 1, variants?: Record<string, string>) => {
     setCart(prev => {
-      const existing = prev.find(p => p.id === product.id);
-      if (existing) {
-        return prev.map(p => p.id === product.id ? { ...p, quantity: p.quantity + 1 } : p);
+      // Create a unique key for the item based on ID and variants
+      const variantKey = variants ? JSON.stringify(variants) : '';
+      
+      const existingIndex = prev.findIndex(p => {
+          const pKey = p.selectedVariants ? JSON.stringify(p.selectedVariants) : '';
+          return p.id === product.id && pKey === variantKey;
+      });
+
+      if (existingIndex > -1) {
+        const newCart = [...prev];
+        newCart[existingIndex].quantity += quantity;
+        return newCart;
       }
-      return [...prev, { ...product, quantity: 1 }];
+      return [...prev, { ...product, quantity, selectedVariants: variants }];
     });
     setIsCartOpen(true);
     toast.success('Added to cart');
   };
 
-  const removeFromCart = (productId: string) => {
-    setCart(prev => prev.filter(p => p.id !== productId));
+  const removeFromCart = (productId: string, variants?: Record<string, string>) => {
+    const variantKey = variants ? JSON.stringify(variants) : '';
+    setCart(prev => prev.filter(p => {
+        const pKey = p.selectedVariants ? JSON.stringify(p.selectedVariants) : '';
+        return !(p.id === productId && pKey === variantKey);
+    }));
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
-    if (quantity < 1) return removeFromCart(productId);
-    setCart(prev => prev.map(p => p.id === productId ? { ...p, quantity } : p));
+  const updateQuantity = (productId: string, quantity: number, variants?: Record<string, string>) => {
+    const variantKey = variants ? JSON.stringify(variants) : '';
+    
+    if (quantity < 1) {
+        removeFromCart(productId, variants);
+        return;
+    }
+    
+    setCart(prev => prev.map(p => {
+        const pKey = p.selectedVariants ? JSON.stringify(p.selectedVariants) : '';
+        if (p.id === productId && pKey === variantKey) {
+            return { ...p, quantity };
+        }
+        return p;
+    }));
   };
 
   const clearCart = () => setCart([]);
@@ -144,12 +183,13 @@ const App: React.FC = () => {
       status: 'pending'
     };
     await ordersService.create(newOrder);
+    await refreshProducts(); // Update stock
     clearCart();
   };
 
   return (
     <AppContext.Provider value={{
-      user, login, logout,
+      user, login, register, logout,
       products, refreshProducts,
       cart, addToCart, removeFromCart, updateQuantity, clearCart,
       placeOrder,

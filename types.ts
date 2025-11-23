@@ -4,6 +4,11 @@ export enum ProductSource {
   LOCAL = 'Bob-Shop Inventory'
 }
 
+export interface ProductVariant {
+  name: string; // e.g. "Color", "Size"
+  options: string[]; // e.g. ["Red", "Blue"], ["S", "M", "L"]
+}
+
 export interface Product {
   id: string;
   title: string;
@@ -15,10 +20,12 @@ export interface Product {
   source: ProductSource;
   isPublished: boolean;
   stock: number;
+  variants?: ProductVariant[];
 }
 
 export interface CartItem extends Product {
   quantity: number;
+  selectedVariants?: Record<string, string>; // e.g. { "Color": "Red", "Size": "M" }
 }
 
 export interface SupplierProduct {
@@ -36,6 +43,7 @@ export interface User {
   name: string;
   email: string;
   role: 'admin' | 'customer';
+  password?: string; // Only for mock auth logic
 }
 
 export interface Order {
@@ -43,7 +51,7 @@ export interface Order {
   userId: string;
   items: CartItem[];
   total: number;
-  status: 'pending' | 'processing' | 'shipped' | 'delivered';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   date: string;
   shippingAddress: {
     name: string;

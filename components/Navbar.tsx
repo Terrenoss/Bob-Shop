@@ -62,7 +62,7 @@ export const Navbar: React.FC = () => {
           {user ? (
             <div className="flex items-center gap-3">
               <div className="hidden sm:flex flex-col items-end">
-                  <span className="text-sm font-semibold text-gray-900 leading-none">{user.name}</span>
+                  <span className="text-sm font-semibold text-gray-900 leading-none">{user.name.split(' ')[0]}</span>
                   <span className="text-[10px] text-gray-500 uppercase tracking-wide">{user.role}</span>
               </div>
               <button 
