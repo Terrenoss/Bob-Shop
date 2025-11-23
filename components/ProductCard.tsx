@@ -1,4 +1,5 @@
 
+
 import React from 'react';
 import { Product } from '../types';
 import { useApp } from '../App';
@@ -16,12 +17,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
 
   const handleEdit = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     // Redirect to Admin with edit param
     navigate(`/admin?editProduct=${product.id}`);
   };
 
   const handleDelete = (e: React.MouseEvent) => {
     e.preventDefault();
+    e.stopPropagation();
     if (confirm('Are you sure you want to delete this product?')) {
         deleteProduct(product.id);
     }

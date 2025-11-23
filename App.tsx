@@ -54,7 +54,8 @@ const MainLayout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
     <div className="min-h-screen flex flex-col bg-gray-50">
       <Navbar />
-      <main className="flex-grow pt-16 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      {/* Increased top padding from pt-16 to pt-28 to prevent navbar overlap */}
+      <main className="flex-grow pt-28 container mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {children}
       </main>
       <footer className="bg-white border-t border-gray-200 text-gray-500 py-12">
@@ -144,13 +145,19 @@ const App: React.FC = () => {
     toast('Logged out successfully');
   };
 
+  // Helper to ensure consistent variant keys (sorted alphabetically)
+  const getVariantKey = (variants?: Record<string, string>) => {
+      if (!variants) return '';
+      // Sort entries by key to ensure {Color: "Red", Size: "M"} === {Size: "M", Color: "Red"}
+      return JSON.stringify(Object.entries(variants).sort((a, b) => a[0].localeCompare(b[0])));
+  };
+
   const addToCart = (product: Product, quantity = 1, variants?: Record<string, string>) => {
     setCart(prev => {
-      // Create a unique key for the item based on ID and variants
-      const variantKey = variants ? JSON.stringify(variants) : '';
+      const variantKey = getVariantKey(variants);
       
       const existingIndex = prev.findIndex(p => {
-          const pKey = p.selectedVariants ? JSON.stringify(p.selectedVariants) : '';
+          const pKey = getVariantKey(p.selectedVariants);
           return p.id === product.id && pKey === variantKey;
       });
 
@@ -166,15 +173,15 @@ const App: React.FC = () => {
   };
 
   const removeFromCart = (productId: string, variants?: Record<string, string>) => {
-    const variantKey = variants ? JSON.stringify(variants) : '';
+    const variantKey = getVariantKey(variants);
     setCart(prev => prev.filter(p => {
-        const pKey = p.selectedVariants ? JSON.stringify(p.selectedVariants) : '';
+        const pKey = getVariantKey(p.selectedVariants);
         return !(p.id === productId && pKey === variantKey);
     }));
   };
 
   const updateQuantity = (productId: string, quantity: number, variants?: Record<string, string>) => {
-    const variantKey = variants ? JSON.stringify(variants) : '';
+    const variantKey = getVariantKey(variants);
     
     if (quantity < 1) {
         removeFromCart(productId, variants);
@@ -182,7 +189,7 @@ const App: React.FC = () => {
     }
     
     setCart(prev => prev.map(p => {
-        const pKey = p.selectedVariants ? JSON.stringify(p.selectedVariants) : '';
+        const pKey = getVariantKey(p.selectedVariants);
         if (p.id === productId && pKey === variantKey) {
             return { ...p, quantity };
         }
