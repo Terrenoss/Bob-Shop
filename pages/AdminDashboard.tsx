@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useApp } from '../App';
 import { SupplierProduct, ProductSource } from '../types';
 import { optimizeProductListing } from '../services/geminiService';
+import { productsService } from '../services/mockNestService';
 import { Button } from '../components/ui/Button';
 import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Sparkles } from 'lucide-react';
 import { toast } from 'react-hot-toast';
@@ -38,7 +39,7 @@ const MOCK_SUPPLIER_PRODUCTS: SupplierProduct[] = [
 ];
 
 export const AdminDashboard: React.FC = () => {
-  const { addProduct } = useApp();
+  const { refreshProducts } = useApp();
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const handleImport = async (supplierProduct: SupplierProduct) => {
@@ -63,10 +64,12 @@ export const AdminDashboard: React.FC = () => {
         stock: 100 // Default stock
       };
 
-      // Artificial delay to show off the "work" being done
-      await new Promise(r => setTimeout(r, 1500));
+      // Call simulated NestJS service
+      await productsService.create(newProduct);
+      
+      // Update global state
+      await refreshProducts();
 
-      addProduct(newProduct);
       toast.success('Product Synced & Optimized!', { id: 'import-toast' });
     } catch (error) {
       toast.error('Failed to import', { id: 'import-toast' });
@@ -76,7 +79,7 @@ export const AdminDashboard: React.FC = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
@@ -86,7 +89,7 @@ export const AdminDashboard: React.FC = () => {
           <p className="text-gray-500">Manage suppliers, sync inventory, and optimize listings with AI.</p>
         </div>
         <div className="flex gap-3">
-          <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2">
+          <div className="bg-green-100 text-green-800 px-4 py-2 rounded-lg text-sm font-medium flex items-center gap-2 shadow-sm border border-green-200">
             <DollarSign size={16} />
             Profit Margin: +240%
           </div>
@@ -95,7 +98,7 @@ export const AdminDashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Stats */}
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-blue-100 text-blue-600 rounded-lg">
               <RefreshCw size={20} />
@@ -106,7 +109,7 @@ export const AdminDashboard: React.FC = () => {
           <p className="text-xs text-gray-500 mt-1">Checking suppliers every 15m</p>
         </div>
         
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
           <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-purple-100 text-purple-600 rounded-lg">
               <Sparkles size={20} />
@@ -117,7 +120,7 @@ export const AdminDashboard: React.FC = () => {
           <p className="text-xs text-gray-500 mt-1">Gemini 2.5 Flash connected</p>
         </div>
 
-        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm">
+        <div className="bg-white p-6 rounded-xl border border-gray-200 shadow-sm hover:shadow-md transition-shadow">
            <div className="flex items-center gap-3 mb-2">
             <div className="p-2 bg-orange-100 text-orange-600 rounded-lg">
               <TrendingUp size={20} />
@@ -174,7 +177,7 @@ export const AdminDashboard: React.FC = () => {
                       disabled={processingId !== null}
                     >
                       <Download size={16} className="mr-2" />
-                      Import to Shop
+                      Import
                     </Button>
                   </td>
                 </tr>

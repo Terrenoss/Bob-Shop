@@ -40,8 +40,15 @@ export interface User {
 
 export interface Order {
   id: string;
+  userId: string;
   items: CartItem[];
   total: number;
-  status: 'pending' | 'processing' | 'shipped';
+  status: 'pending' | 'processing' | 'shipped' | 'delivered';
   date: string;
+  shippingAddress: {
+    name: string;
+    line1: string;
+    city: string;
+    postalCode: string;
+  };
 }
