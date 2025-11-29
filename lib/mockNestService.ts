@@ -4,7 +4,9 @@
 
 
 
-import { Product, Order, User, ProductSource, Coupon, OrderStatusHistory, Review, Category, StoreSettings, Notification, ChatSession, ChatMessage, ChatContext } from '../types';
+
+
+import { Product, Order, User, ProductSource, Coupon, OrderStatusHistory, Review, Category, StoreSettings, Notification, ChatSession, ChatMessage, ChatContext, CarouselSlide } from '../types';
 
 // --- Simulated Database (LocalStorage) ---
 
@@ -19,6 +21,7 @@ const DB_KEYS = {
   NOTIFICATIONS: 'bob-shop-db-notifications',
   CHATS: 'bob-shop-db-chats',
   MESSAGES: 'bob-shop-db-messages',
+  SLIDES: 'bob-shop-db-slides',
 };
 
 const INITIAL_CATEGORIES: Category[] = [
@@ -37,6 +40,45 @@ const INITIAL_SETTINGS: StoreSettings = {
     taxRate: 0,
     carouselInterval: 5000 // Default 5 seconds
 };
+
+const INITIAL_SLIDES: CarouselSlide[] = [
+    {
+      id: 'digital',
+      subtitle: "DIGITAL MARKET",
+      title: "Instant Digital Delivery",
+      description: "Get your Game Keys, Gift Cards, and Skins instantly. No waiting.",
+      iconName: 'Gamepad2',
+      colorClass: "from-blue-900/40 to-indigo-900/40",
+      accentClass: "text-blue-400",
+      borderClass: "border-blue-500/30",
+      tags: ['Gift Cards', 'Skins', 'Game Keys', 'Software'],
+      categoryFilter: 'Digital'
+    },
+    {
+      id: 'anime',
+      subtitle: "OTAKU COLLECTION",
+      title: "Anime & Manga Import",
+      description: "Authentic figures, rare TCG cards, and exclusive manga from Japan.",
+      iconName: 'Sparkles',
+      colorClass: "from-pink-900/40 to-purple-900/40",
+      accentClass: "text-pink-400",
+      borderClass: "border-pink-500/30",
+      tags: ['Figures', 'TCG', 'Cosplay', 'Manga'],
+      categoryFilter: 'Anime & Manga'
+    },
+    {
+      id: 'tech',
+      subtitle: "NEXT-GEN TECH",
+      title: "High-Performance Gear",
+      description: "Upgrade your setup with the latest noise-cancelling tech and gadgets.",
+      iconName: 'Smartphone',
+      colorClass: "from-emerald-900/40 to-cyan-900/40",
+      accentClass: "text-emerald-400",
+      borderClass: "border-emerald-500/30",
+      tags: ['Audio', 'Laptops', 'Gaming', 'Accessories'],
+      categoryFilter: 'High-Tech'
+    }
+];
 
 // Initial Seed Data
 const INITIAL_PRODUCTS: Product[] = [
@@ -464,6 +506,38 @@ const INITIAL_COUPONS: Coupon[] = [
 ];
 
 // --- NestJS Service Simulation ---
+
+class CarouselService {
+  async findAll(): Promise<CarouselSlide[]> {
+    const data = localStorage.getItem(DB_KEYS.SLIDES);
+    return data ? JSON.parse(data) : INITIAL_SLIDES;
+  }
+
+  async create(slide: Omit<CarouselSlide, 'id'>): Promise<CarouselSlide> {
+    const slides = await this.findAll();
+    const newSlide: CarouselSlide = { ...slide, id: `slide-${Date.now()}` };
+    const newSlides = [...slides, newSlide];
+    localStorage.setItem(DB_KEYS.SLIDES, JSON.stringify(newSlides));
+    return newSlide;
+  }
+
+  async update(id: string, updates: Partial<CarouselSlide>): Promise<CarouselSlide | undefined> {
+    const slides = await this.findAll();
+    const index = slides.findIndex(s => s.id === id);
+    if (index === -1) return undefined;
+
+    const updated = { ...slides[index], ...updates };
+    slides[index] = updated;
+    localStorage.setItem(DB_KEYS.SLIDES, JSON.stringify(slides));
+    return updated;
+  }
+
+  async delete(id: string): Promise<void> {
+    const slides = await this.findAll();
+    const newSlides = slides.filter(s => s.id !== id);
+    localStorage.setItem(DB_KEYS.SLIDES, JSON.stringify(newSlides));
+  }
+}
 
 class SettingsService {
     async getSettings(): Promise<StoreSettings> {
@@ -1035,3 +1109,4 @@ export const categoriesService = new CategoriesService();
 export const settingsService = new SettingsService();
 export const notificationsService = new NotificationsService();
 export const chatService = new ChatService();
+export const carouselService = new CarouselService();

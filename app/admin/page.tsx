@@ -1,17 +1,18 @@
 
 
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../providers';
-import { SupplierProduct, ProductSource, Order, Product, Coupon, User, Category, Review, ChatSession, ChatMessage, CartItem } from '../../types';
+import { SupplierProduct, ProductSource, Order, Product, Coupon, User, Category, Review, ChatSession, ChatMessage, CartItem, CarouselSlide } from '../../types';
 import { optimizeProductListing } from '../../lib/geminiService';
 import { productsService, ordersService, couponsService, authService, categoriesService, reviewsService, settingsService, chatService } from '../../lib/mockNestService';
 import { Button } from '../../components/ui/Button';
 import { ProductFormModal } from '../../components/ProductFormModal';
 import { OrderTimeline } from '../../components/OrderTimeline';
 import { FormattedText } from '../../components/FormattedText';
-import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban, MessageSquarePlus, History, CheckCircle, Ticket, Plus, Users, Shield, Clock, ExternalLink, Grid, Tag, KeyRound, Radio, Send, Star, Image as ImageIcon, MessageSquare, Settings, Upload, Eye, List, Key, ShieldCheck, User as UserIcon, Lock, ChevronRight } from 'lucide-react';
+import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban, MessageSquarePlus, History, CheckCircle, Ticket, Plus, Users, Shield, Clock, ExternalLink, Grid, Tag, KeyRound, Radio, Send, Star, Image as ImageIcon, MessageSquare, Settings, Upload, Eye, List, Key, ShieldCheck, User as UserIcon, Lock, ChevronRight, Layout, ArrowUp, ArrowDown, Paperclip, Check } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 
@@ -37,16 +38,29 @@ const MOCK_SUPPLIER_PRODUCTS: SupplierProduct[] = [
   }
 ];
 
+// Color Presets for Carousel
+const COLOR_THEMES = [
+    { label: 'Digital Blue', from: 'from-blue-900/40', to: 'to-indigo-900/40', accent: 'text-blue-400', border: 'border-blue-500/30' },
+    { label: 'Anime Pink', from: 'from-pink-900/40', to: 'to-purple-900/40', accent: 'text-pink-400', border: 'border-pink-500/30' },
+    { label: 'Tech Emerald', from: 'from-emerald-900/40', to: 'to-cyan-900/40', accent: 'text-emerald-400', border: 'border-emerald-500/30' },
+    { label: 'Home Orange', from: 'from-orange-900/40', to: 'to-red-900/40', accent: 'text-orange-400', border: 'border-orange-500/30' },
+    { label: 'Fashion Purple', from: 'from-purple-900/40', to: 'to-fuchsia-900/40', accent: 'text-purple-400', border: 'border-purple-500/30' },
+    { label: 'Dark Zinc', from: 'from-zinc-900', to: 'to-black', accent: 'text-white', border: 'border-zinc-700' },
+];
+
+const AVAILABLE_ICONS = ['Gamepad2', 'Sparkles', 'Smartphone', 'Shirt', 'Home', 'Baby', 'Utensils', 'Gift', 'Zap', 'Star', 'Percent'];
+
 export default function AdminPage() {
   const { 
       refreshProducts, products, deleteProduct, updateProduct, 
       user: currentUser, 
       createCoupon, updateCoupon, deleteCoupon,
       categories, createCategory, updateCategory, deleteCategory,
+      carouselSlides, createSlide, updateSlide, deleteSlide,
       settings, updateSettings, deleteOrder, formatPrice
   } = useApp();
 
-  const [activeTab, setActiveTab] = useState<'suppliers' | 'inventory' | 'orders' | 'coupons' | 'users' | 'categories' | 'reviews' | 'settings' | 'support'>('orders');
+  const [activeTab, setActiveTab] = useState<'suppliers' | 'inventory' | 'orders' | 'coupons' | 'users' | 'categories' | 'reviews' | 'settings' | 'support' | 'carousel'>('orders');
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [coupons, setCoupons] = useState<Coupon[]>([]);
@@ -97,6 +111,18 @@ export default function AdminPage() {
   // Category Form State
   const [editingCategory, setEditingCategory] = useState<Partial<Category>>({ name: '', description: '' });
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+
+  // Carousel Form State
+  const [editingSlide, setEditingSlide] = useState<Partial<CarouselSlide>>({ 
+      title: '', subtitle: '', description: '', iconName: 'Star', 
+      colorClass: COLOR_THEMES[0].from + ' ' + COLOR_THEMES[0].to,
+      accentClass: COLOR_THEMES[0].accent,
+      borderClass: COLOR_THEMES[0].border,
+      tags: [], categoryFilter: '' 
+  });
+  const [isSlideModalOpen, setIsSlideModalOpen] = useState(false);
+  const [slideTagInput, setSlideTagInput] = useState('');
+  const [selectedColorTheme, setSelectedColorTheme] = useState(0);
 
   // Settings Form State
   const [settingsForm, setSettingsForm] = useState({ shippingCost: 0, taxRate: 0, carouselInterval: 5000 });
@@ -331,6 +357,52 @@ export default function AdminPage() {
   const handleDeleteCategory = async (id: string) => { if (confirm('Delete?')) { await deleteCategory(id); } };
   const handleDeleteReview = async (id: string) => { if(confirm('Delete review?')) { await reviewsService.delete(id); fetchData(); } };
   
+  // Carousel Handlers
+  const handleOpenSlideModal = (s?: CarouselSlide) => {
+      if (s) {
+          setEditingSlide(s);
+          setSlideTagInput(s.tags.join(', '));
+          // Try to match theme
+          const themeIdx = COLOR_THEMES.findIndex(t => t.from === s.colorClass.split(' ')[0]);
+          setSelectedColorTheme(themeIdx !== -1 ? themeIdx : 0);
+      } else {
+          setEditingSlide({ 
+              title: '', subtitle: '', description: '', iconName: 'Star', 
+              colorClass: COLOR_THEMES[0].from + ' ' + COLOR_THEMES[0].to,
+              accentClass: COLOR_THEMES[0].accent,
+              borderClass: COLOR_THEMES[0].border,
+              tags: [], categoryFilter: categories.length > 0 ? categories[0].name : '' 
+          });
+          setSlideTagInput('');
+          setSelectedColorTheme(0);
+      }
+      setIsSlideModalOpen(true);
+  };
+
+  const handleSaveSlide = async (e: React.FormEvent) => {
+      e.preventDefault();
+      
+      const theme = COLOR_THEMES[selectedColorTheme];
+      const finalSlide = {
+          ...editingSlide,
+          tags: slideTagInput.split(',').map(t => t.trim()).filter(Boolean),
+          colorClass: `${theme.from} ${theme.to}`,
+          accentClass: theme.accent,
+          borderClass: theme.border
+      };
+
+      if (editingSlide.id) {
+          await updateSlide(editingSlide.id, finalSlide);
+      } else {
+          await createSlide(finalSlide as any);
+      }
+      setIsSlideModalOpen(false);
+  };
+
+  const handleDeleteSlide = async (id: string) => {
+      if (confirm('Delete slide?')) await deleteSlide(id);
+  };
+
   // --- Order Modal Logic ---
   const openOrderModal = (o: Order) => { setSelectedOrder(o); setIsOrderModalOpen(true); };
   const closeOrderModal = () => { setIsOrderModalOpen(false); setTimeout(() => setSelectedOrder(null), 300); };
@@ -427,6 +499,8 @@ export default function AdminPage() {
       }
   };
 
+  const filteredOrders = orders.filter(o => (orderFilter === 'all' || o.status === orderFilter) && o.id.includes(orderSearch));
+
   return (
     <div className="space-y-8 pb-20">
       {/* Header & Stats */}
@@ -520,7 +594,7 @@ export default function AdminPage() {
 
       {/* Tabs */}
       <div className="bg-zinc-900 rounded-xl shadow-sm border border-zinc-800 p-1 flex gap-1 overflow-x-auto">
-          {['orders', 'inventory', 'users', 'coupons', 'categories', 'reviews', 'suppliers', 'settings', 'support'].map((tab: any) => (
+          {['orders', 'inventory', 'users', 'coupons', 'categories', 'reviews', 'carousel', 'suppliers', 'settings', 'support'].map((tab: any) => (
               <button 
                  key={tab}
                  onClick={() => setActiveTab(tab)}
@@ -561,31 +635,42 @@ export default function AdminPage() {
                             </tr>
                         </thead>
                         <tbody className="divide-y divide-zinc-800">
-                            {orders.filter(o => (orderFilter === 'all' || o.status === orderFilter) && o.id.includes(orderSearch)).map(order => (
-                                <tr key={order.id} className="hover:bg-zinc-800/50 cursor-pointer transition-colors" onClick={() => openOrderModal(order)}>
-                                    <td className="p-4 font-mono font-bold text-blue-400">#{order.id.replace('ord-', '')}</td>
-                                    <td className="p-4">
-                                        <div className="font-bold text-white">{order.shippingAddress.name}</div>
-                                        <div className="text-xs text-gray-500">{order.shippingAddress.city}</div>
-                                    </td>
-                                    <td className="p-4 text-gray-400">{new Date(order.date).toLocaleDateString()}</td>
-                                    <td className="p-4 font-bold text-white">${order.total.toFixed(2)}</td>
-                                    <td className="p-4">
-                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase border ${
-                                            order.status === 'delivered' ? 'bg-green-900/20 text-green-400 border-green-900/50' : 
-                                            order.status === 'cancelled' ? 'bg-red-900/20 text-red-400 border-red-900/50' : 
-                                            'bg-yellow-900/20 text-yellow-400 border-yellow-900/50'
-                                        }`}>
-                                            {order.status}
-                                        </span>
-                                    </td>
-                                    <td className="p-4 text-right">
-                                        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); openOrderModal(order); }}>
-                                            Manage
-                                        </Button>
+                            {filteredOrders.length > 0 ? (
+                                filteredOrders.map(order => (
+                                    <tr key={order.id} className="hover:bg-zinc-800/50 cursor-pointer transition-colors" onClick={() => openOrderModal(order)}>
+                                        <td className="p-4 font-mono font-bold text-blue-400">#{order.id.replace('ord-', '')}</td>
+                                        <td className="p-4">
+                                            <div className="font-bold text-white">{order.shippingAddress.name}</div>
+                                            <div className="text-xs text-gray-500">{order.shippingAddress.city}</div>
+                                        </td>
+                                        <td className="p-4 text-gray-400">{new Date(order.date).toLocaleDateString()}</td>
+                                        <td className="p-4 font-bold text-white">${order.total.toFixed(2)}</td>
+                                        <td className="p-4">
+                                            <span className={`px-2 py-1 rounded text-xs font-bold uppercase border ${
+                                                order.status === 'delivered' ? 'bg-green-900/20 text-green-400 border-green-900/50' : 
+                                                order.status === 'cancelled' ? 'bg-red-900/20 text-red-400 border-red-900/50' : 
+                                                'bg-yellow-900/20 text-yellow-400 border-yellow-900/50'
+                                            }`}>
+                                                {order.status}
+                                            </span>
+                                        </td>
+                                        <td className="p-4 text-right">
+                                            <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); openOrderModal(order); }}>
+                                                Manage
+                                            </Button>
+                                        </td>
+                                    </tr>
+                                ))
+                            ) : (
+                                <tr>
+                                    <td colSpan={6} className="p-12 text-center text-gray-500">
+                                        <div className="flex flex-col items-center justify-center">
+                                            <Package size={48} className="mb-4 opacity-20" />
+                                            <p>No orders found matching your criteria.</p>
+                                        </div>
                                     </td>
                                 </tr>
-                            ))}
+                            )}
                         </tbody>
                     </table>
                 </div>
@@ -622,6 +707,43 @@ export default function AdminPage() {
                             ))}
                         </tbody>
                     </table>
+                </div>
+            </div>
+        )}
+
+        {/* CAROUSEL TAB */}
+        {activeTab === 'carousel' && (
+            <div className="p-4">
+                <div className="flex justify-between items-center mb-4">
+                    <div className="text-gray-400 text-sm">
+                        Manage slides displayed on the homepage.
+                    </div>
+                    <Button onClick={() => handleOpenSlideModal()}><Plus size={16} className="mr-2"/> Add Slide</Button>
+                </div>
+                <div className="space-y-4">
+                    {carouselSlides.map((slide) => (
+                        <div key={slide.id} className="border border-zinc-800 bg-zinc-950 rounded-xl p-4 flex gap-4 items-center">
+                            <div className={`w-24 h-16 rounded-lg bg-gradient-to-r ${slide.colorClass} flex-shrink-0 flex items-center justify-center border ${slide.borderClass}`}>
+                                <span className={`text-xs font-bold ${slide.accentClass} uppercase`}>{slide.iconName}</span>
+                            </div>
+                            <div className="flex-grow">
+                                <h4 className="font-bold text-white text-lg">{slide.title}</h4>
+                                <p className="text-sm text-gray-400 line-clamp-1">{slide.description}</p>
+                                <div className="flex gap-2 mt-2">
+                                    <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700 text-gray-400 flex items-center gap-1">
+                                        <span className="text-gray-500">Icon:</span> {slide.iconName}
+                                    </span>
+                                    <span className="text-xs bg-zinc-800 px-2 py-0.5 rounded border border-zinc-700 text-gray-400 flex items-center gap-1">
+                                        <span className="text-gray-500">Cat:</span> {slide.categoryFilter}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="flex gap-2">
+                                <button onClick={() => handleOpenSlideModal(slide)} className="p-2 text-blue-400 hover:bg-blue-900/20 rounded transition-colors"><Edit2 size={18}/></button>
+                                <button onClick={() => handleDeleteSlide(slide.id)} className="p-2 text-red-400 hover:bg-red-900/20 rounded transition-colors"><Trash2 size={18}/></button>
+                            </div>
+                        </div>
+                    ))}
                 </div>
             </div>
         )}
@@ -814,6 +936,85 @@ export default function AdminPage() {
         )}
 
       </div>
+
+      {/* --- CAROUSEL SLIDE MODAL --- */}
+      {isSlideModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4">
+              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-xl h-[100dvh] md:h-auto md:rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200 overflow-y-auto">
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                          <Layout size={20} /> {editingSlide.id ? 'Edit Slide' : 'Add Slide'}
+                      </h3>
+                      <button onClick={() => setIsSlideModalOpen(false)} className="text-gray-500 hover:text-white"><X size={20} /></button>
+                  </div>
+                  <form onSubmit={handleSaveSlide} className="space-y-4">
+                      <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-1">
+                              <label className="text-xs font-bold text-gray-500 uppercase">Title</label>
+                              <input required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingSlide.title} onChange={e => setEditingSlide({...editingSlide, title: e.target.value})} placeholder="e.g. Summer Sale" />
+                          </div>
+                          <div className="space-y-1">
+                              <label className="text-xs font-bold text-gray-500 uppercase">Subtitle</label>
+                              <input required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingSlide.subtitle} onChange={e => setEditingSlide({...editingSlide, subtitle: e.target.value})} placeholder="e.g. LIMITED OFFER" />
+                          </div>
+                      </div>
+                      
+                      <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-500 uppercase">Description</label>
+                          <textarea required rows={2} className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingSlide.description} onChange={e => setEditingSlide({...editingSlide, description: e.target.value})} placeholder="Brief text describing the promotion..." />
+                      </div>
+
+                      <div className="grid grid-cols-3 gap-4">
+                          <div className="space-y-1">
+                              <label className="text-xs font-bold text-gray-500 uppercase">Icon</label>
+                              <select 
+                                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none"
+                                  value={editingSlide.iconName}
+                                  onChange={e => setEditingSlide({...editingSlide, iconName: e.target.value})}
+                              >
+                                  {AVAILABLE_ICONS.map(icon => <option key={icon} value={icon}>{icon}</option>)}
+                              </select>
+                          </div>
+                          <div className="space-y-1">
+                              <label className="text-xs font-bold text-gray-500 uppercase">Category Filter</label>
+                              <select 
+                                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none"
+                                  value={editingSlide.categoryFilter}
+                                  onChange={e => setEditingSlide({...editingSlide, categoryFilter: e.target.value})}
+                              >
+                                  {categories.map(c => <option key={c.id} value={c.name}>{c.name}</option>)}
+                              </select>
+                          </div>
+                          <div className="space-y-1">
+                              <label className="text-xs font-bold text-gray-500 uppercase">Color Theme</label>
+                              <select 
+                                  className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none"
+                                  value={selectedColorTheme}
+                                  onChange={e => setSelectedColorTheme(Number(e.target.value))}
+                              >
+                                  {COLOR_THEMES.map((theme, idx) => <option key={idx} value={idx}>{theme.label}</option>)}
+                              </select>
+                          </div>
+                      </div>
+
+                      <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-500 uppercase">Background Image URL (Optional)</label>
+                          <input className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none text-sm" value={editingSlide.backgroundImage || ''} onChange={e => setEditingSlide({...editingSlide, backgroundImage: e.target.value})} placeholder="https://..." />
+                      </div>
+
+                      <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-500 uppercase">Tags (Comma Separated)</label>
+                          <input className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={slideTagInput} onChange={e => setSlideTagInput(e.target.value)} placeholder="Sale, New, Hot" />
+                      </div>
+
+                      <div className="flex justify-end gap-3 pt-4 border-t border-zinc-800 mt-4">
+                          <Button variant="secondary" type="button" onClick={() => setIsSlideModalOpen(false)}>Cancel</Button>
+                          <Button type="submit">Save Slide</Button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
 
       {/* --- ORDER MANAGER MODAL (Centered & Enhanced) --- */}
       {isOrderModalOpen && selectedOrder && (

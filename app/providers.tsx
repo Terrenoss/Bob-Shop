@@ -1,10 +1,12 @@
 
 
+
+
 'use client';
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { Product, CartItem, User, Order, Coupon, Category, StoreSettings, Notification, ChatContext } from '../types';
-import { productsService, ordersService, authService, couponsService, categoriesService, settingsService, notificationsService } from '../lib/mockNestService';
+import { Product, CartItem, User, Order, Coupon, Category, StoreSettings, Notification, ChatContext, CarouselSlide } from '../types';
+import { productsService, ordersService, authService, couponsService, categoriesService, settingsService, notificationsService, carouselService } from '../lib/mockNestService';
 import { toast } from 'react-hot-toast';
 
 interface AppContextType {
@@ -40,6 +42,11 @@ interface AppContextType {
 
   settings: StoreSettings;
   updateSettings: (settings: Partial<StoreSettings>) => Promise<void>;
+
+  carouselSlides: CarouselSlide[];
+  createSlide: (slide: Omit<CarouselSlide, 'id'>) => Promise<void>;
+  updateSlide: (id: string, slide: Partial<CarouselSlide>) => Promise<void>;
+  deleteSlide: (id: string) => Promise<void>;
 
   placeOrder: (orderData: Omit<Order, 'id' | 'date' | 'statusHistory'>) => Promise<void>;
   deleteOrder: (id: string) => Promise<void>;
@@ -78,10 +85,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [user, setUser] = useState<User | null>(null);
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [carouselSlides, setCarouselSlides] = useState<CarouselSlide[]>([]);
   const [isProductsLoading, setIsProductsLoading] = useState(true);
   const [cart, setCart] = useState<CartItem[]>([]);
   const [coupon, setCoupon] = useState<Coupon | null>(null);
-  const [settings, setSettings] = useState<StoreSettings>({ shippingCost: 4.99, taxRate: 0.08 });
+  const [settings, setSettings] = useState<StoreSettings>({ shippingCost: 4.99, taxRate: 0.08, carouselInterval: 5000 });
   const [notifications, setNotifications] = useState<Notification[]>([]);
   
   const [isCartOpen, setIsCartOpen] = useState(false);
@@ -98,6 +106,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     refreshProducts();
     refreshCategories();
     refreshSettings();
+    refreshSlides();
     const savedCart = localStorage.getItem('bob-shop-cart');
     if (savedCart) setCart(JSON.parse(savedCart));
     
@@ -154,6 +163,11 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setSettings(fetched);
   };
 
+  const refreshSlides = async () => {
+    const fetched = await carouselService.findAll();
+    setCarouselSlides(fetched);
+  };
+
   const refreshNotifications = async (userId: string) => {
       const fetched = await notificationsService.findAll(userId);
       setNotifications(fetched);
@@ -206,6 +220,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     await categoriesService.delete(id);
     await refreshCategories();
     toast.success('Category deleted');
+  };
+
+  // Carousel Actions
+  const createSlide = async (slide: Omit<CarouselSlide, 'id'>) => {
+    await carouselService.create(slide);
+    await refreshSlides();
+    toast.success('Slide created');
+  };
+
+  const updateSlide = async (id: string, slide: Partial<CarouselSlide>) => {
+    await carouselService.update(id, slide);
+    await refreshSlides();
+    toast.success('Slide updated');
+  };
+
+  const deleteSlide = async (id: string) => {
+    await carouselService.delete(id);
+    await refreshSlides();
+    toast.success('Slide deleted');
   };
 
   // Actions
@@ -402,6 +435,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
       coupon, applyCoupon, removeCoupon, createCoupon, updateCoupon, deleteCoupon,
       categories, createCategory, updateCategory, deleteCategory,
       settings, updateSettings,
+      carouselSlides, createSlide, updateSlide, deleteSlide,
       placeOrder, deleteOrder,
       notifications, markNotificationRead, markAllNotificationsRead,
       isCartOpen, setIsCartOpen,

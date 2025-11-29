@@ -159,6 +159,20 @@ export interface StoreSettings {
   carouselInterval: number; // Milliseconds for homepage carousel
 }
 
+export interface CarouselSlide {
+  id: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  backgroundImage?: string; // Optional URL override
+  iconName: string; // e.g. 'Gamepad2'
+  colorClass: string; // e.g. "from-blue-900/40 to-indigo-900/40"
+  accentClass: string; // e.g. "text-blue-400"
+  borderClass: string; // e.g. "border-blue-500/30"
+  tags: string[];
+  categoryFilter: string; // ID or Name of category to fetch products from
+}
+
 // Notifications & Chat
 export interface Notification {
   id: string;

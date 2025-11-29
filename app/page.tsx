@@ -17,9 +17,15 @@ import {
   Briefcase, Glasses, Footprints, Star, Check, Globe,
   Gamepad, Key, CreditCard, Coins, User, Ghost, Gift, Coffee,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  Percent
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+
+// Icon Mapping Helper
+const ICON_MAP: Record<string, any> = {
+    Gamepad2, Sparkles, Smartphone, Shirt, Home, Baby, Utensils, Gift, Percent, Zap, Star
+};
 
 // Category Configuration
 interface SubCategory { name: string; query: string; }
@@ -138,7 +144,7 @@ const CATEGORY_TREE: MegaCategory[] = [
 ];
 
 export default function HomePage() {
-  const { products, isProductsLoading, categories, settings } = useApp();
+  const { products, isProductsLoading, categories, settings, carouselSlides } = useApp();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
@@ -160,44 +166,14 @@ export default function HomePage() {
   // Hero Carousel State
   const [heroIndex, setHeroIndex] = useState(0);
 
-  const heroSlides = useMemo(() => [
-    {
-      id: 'digital',
-      subtitle: "DIGITAL MARKET",
-      title: "Instant Digital Delivery",
-      desc: "Get your Game Keys, Gift Cards, and Skins instantly. No waiting.",
-      icon: Gamepad2,
-      color: "from-blue-900/40 to-indigo-900/40",
-      accent: "text-blue-400",
-      border: "border-blue-500/30",
-      tags: ['Gift Cards', 'Skins', 'Game Keys', 'Software'],
-      featuredProducts: products.filter(p => p.category === 'Digital').slice(0, 4)
-    },
-    {
-      id: 'anime',
-      subtitle: "OTAKU COLLECTION",
-      title: "Anime & Manga Import",
-      desc: "Authentic figures, rare TCG cards, and exclusive manga from Japan.",
-      icon: Sparkles,
-      color: "from-pink-900/40 to-purple-900/40",
-      accent: "text-pink-400",
-      border: "border-pink-500/30",
-      tags: ['Figures', 'TCG', 'Cosplay', 'Manga'],
-      featuredProducts: products.filter(p => p.category === 'Anime & Manga').slice(0, 4)
-    },
-    {
-      id: 'tech',
-      subtitle: "NEXT-GEN TECH",
-      title: "High-Performance Gear",
-      desc: "Upgrade your setup with the latest noise-cancelling tech and gadgets.",
-      icon: Smartphone,
-      color: "from-emerald-900/40 to-cyan-900/40",
-      accent: "text-emerald-400",
-      border: "border-emerald-500/30",
-      tags: ['Audio', 'Laptops', 'Gaming', 'Accessories'],
-      featuredProducts: products.filter(p => p.category === 'High-Tech').slice(0, 4)
-    }
-  ], [products]);
+  // Computed Hero Slides using Dynamic Data
+  const heroSlides = useMemo(() => {
+      return carouselSlides.map(slide => ({
+          ...slide,
+          icon: ICON_MAP[slide.iconName] || Star,
+          featuredProducts: products.filter(p => p.category === slide.categoryFilter).slice(0, 4)
+      }));
+  }, [products, carouselSlides]);
 
   const nextSlide = () => setHeroIndex((prev) => (prev + 1) % heroSlides.length);
   const prevSlide = () => setHeroIndex((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
@@ -205,7 +181,7 @@ export default function HomePage() {
   // Auto-play Carousel
   useEffect(() => {
       // If interval is 0 or less, disable auto-play
-      if (settings.carouselInterval <= 0) return;
+      if (settings.carouselInterval <= 0 || heroSlides.length <= 1) return;
 
       const interval = setInterval(() => {
           nextSlide();
@@ -213,8 +189,6 @@ export default function HomePage() {
 
       return () => clearInterval(interval);
   }, [settings.carouselInterval, heroSlides.length]); // Re-run if settings change
-
-  const activeSlide = heroSlides[heroIndex];
 
   const horizontalCategories = useMemo(() => {
       const treeCats = CATEGORY_TREE.map(c => c.id);
@@ -324,8 +298,6 @@ export default function HomePage() {
     }
   };
 
-  const ActiveIcon = activeSlide.icon;
-
   return (
     <div className="container mx-auto pb-12">
       {/* Category Bar */}
@@ -370,81 +342,105 @@ export default function HomePage() {
       </div>
 
       {/* Dynamic Hero Carousel */}
-      {selectedCategory === 'All' && !searchQuery && (
-         <div className="mb-12 relative group/hero">
-            <div className={`absolute inset-0 bg-gradient-to-r ${activeSlide.color} rounded-2xl transition-all duration-700`}></div>
-            <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay rounded-2xl"></div>
-
-            <div className={`relative z-10 border ${activeSlide.border} rounded-2xl p-6 md:p-8 flex flex-col lg:flex-row gap-8 transition-all duration-500 min-h-[400px]`}>
-                
-                {/* Left Side: Featured Info */}
-                <div className="flex-1 flex flex-col justify-center space-y-6">
-                    <div>
-                        <div className={`inline-flex items-center gap-2 ${activeSlide.accent} bg-zinc-900/50 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/10 mb-4`}>
-                            <ActiveIcon size={14} /> {activeSlide.subtitle}
-                        </div>
-                        <h2 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4 drop-shadow-lg">
-                            {activeSlide.title}
-                        </h2>
-                        <p className="text-gray-200 text-base md:text-lg max-w-lg leading-relaxed shadow-black drop-shadow-md">
-                            {activeSlide.desc}
-                        </p>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-3">
-                        {activeSlide.tags.map(tag => (
-                            <button 
-                                key={tag} 
-                                onClick={() => handleHeroTagClick(tag)}
-                                className="px-4 py-2 bg-zinc-900/40 hover:bg-white/10 border border-white/20 rounded-lg text-sm font-bold text-white hover:border-white/50 transition-all backdrop-blur-sm"
-                            >
-                                {tag}
-                            </button>
-                        ))}
-                    </div>
-                </div>
-
-                {/* Right Side: Featured Products Mini-Grid */}
-                <div className="lg:w-[450px] flex-shrink-0 hidden sm:block">
-                    <div className="flex justify-between items-center mb-4 px-2">
-                        <span className="text-xs font-bold uppercase text-white/70 tracking-wider">Available Now</span>
-                        <div className="flex gap-1">
-                            <button onClick={prevSlide} className="p-1.5 rounded-lg bg-black/30 hover:bg-white/20 text-white transition-all"><ArrowLeft size={16}/></button>
-                            <button onClick={nextSlide} className="p-1.5 rounded-lg bg-black/30 hover:bg-white/20 text-white transition-all"><ArrowRight size={16}/></button>
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-3">
-                        {activeSlide.featuredProducts.length > 0 ? (
-                            activeSlide.featuredProducts.map(p => (
-                                <Link key={p.id} to={`/product/${p.id}`} className="group/card bg-black/40 p-3 rounded-xl border border-white/10 hover:border-white/30 hover:bg-black/60 transition-all backdrop-blur-sm">
-                                    <div className="aspect-[4/3] bg-zinc-800 rounded-lg overflow-hidden mb-3 relative">
-                                        <img src={p.image} className="w-full h-full object-cover opacity-80 group-hover/card:opacity-100 transition-opacity" />
-                                        {(p.isDigital || p.category === 'Digital') && <div className="absolute top-1 right-1 bg-blue-600 text-[8px] font-bold px-1.5 py-0.5 rounded text-white uppercase shadow-sm">Instant</div>}
-                                        {p.condition === 'used' && <div className="absolute top-1 left-1 bg-amber-500 text-black text-[8px] font-bold px-1.5 py-0.5 rounded uppercase shadow-sm">Used</div>}
-                                    </div>
-                                    <h4 className="font-bold text-gray-100 text-sm truncate group-hover/card:text-white">{p.title}</h4>
-                                    <div className="flex justify-between items-center mt-1">
-                                        <p className={`${activeSlide.accent} font-bold text-xs`}>${p.price}</p>
-                                        {p.originalPrice && <span className="text-[10px] text-gray-500 line-through">-${Math.round((1 - p.price/p.originalPrice)*100)}%</span>}
-                                    </div>
-                                </Link>
-                            ))
-                        ) : (
-                            <div className="col-span-2 h-64 flex items-center justify-center text-white/50 text-sm border border-white/10 rounded-xl bg-black/20">
-                                No featured items yet
-                            </div>
+      {selectedCategory === 'All' && !searchQuery && heroSlides.length > 0 && (
+         <div className="mb-12 relative group/hero h-[500px] md:h-[450px] overflow-hidden rounded-2xl bg-zinc-900 shadow-2xl">
+            {/* Render all slides stacked for transition */}
+            {heroSlides.map((slide, index) => {
+                const isActive = index === heroIndex;
+                const Icon = slide.icon;
+                return (
+                    <div 
+                        key={slide.id}
+                        className={`absolute inset-0 w-full h-full transition-opacity duration-1000 ease-in-out ${isActive ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+                    >
+                        {/* Background */}
+                        <div className={`absolute inset-0 bg-gradient-to-r ${slide.colorClass}`}></div>
+                        {slide.backgroundImage && (
+                            <img src={slide.backgroundImage} className="absolute inset-0 w-full h-full object-cover mix-blend-overlay opacity-40" />
                         )}
+                        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay"></div>
+
+                        <div className="relative z-10 h-full w-full p-6 md:p-12 flex flex-col lg:flex-row gap-8 items-center justify-between container mx-auto">
+                            
+                            {/* Left Side: Featured Info */}
+                            <div className={`flex-1 flex flex-col justify-center space-y-6 max-w-2xl transition-all duration-700 delay-100 transform ${isActive ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0'}`}>
+                                <div>
+                                    <div className={`inline-flex items-center gap-2 ${slide.accentClass} bg-black/40 backdrop-blur-md px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/10 mb-4 shadow-lg`}>
+                                        <Icon size={14} /> {slide.subtitle}
+                                    </div>
+                                    <h2 className="text-4xl sm:text-5xl md:text-7xl font-black text-white leading-tight mb-4 drop-shadow-xl tracking-tight">
+                                        {slide.title}
+                                    </h2>
+                                    <p className="text-gray-100 text-lg md:text-xl font-medium max-w-lg leading-relaxed drop-shadow-md">
+                                        {slide.description}
+                                    </p>
+                                </div>
+                                
+                                <div className={`flex flex-wrap gap-3 transition-all duration-700 delay-200 transform ${isActive ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}>
+                                    {slide.tags.map(tag => (
+                                        <button 
+                                            key={tag} 
+                                            onClick={() => handleHeroTagClick(tag)}
+                                            className="px-4 py-2 bg-white/10 hover:bg-white/20 border border-white/10 rounded-full text-sm font-bold text-white hover:border-white/50 transition-all backdrop-blur-md hover:scale-105 active:scale-95"
+                                        >
+                                            {tag}
+                                        </button>
+                                    ))}
+                                </div>
+                            </div>
+
+                            {/* Right Side: Featured Products Mini-Grid */}
+                            <div className={`lg:w-[450px] flex-shrink-0 hidden lg:block transition-all duration-1000 delay-300 transform ${isActive ? 'translate-x-0 opacity-100' : 'translate-x-12 opacity-0'}`}>
+                                <div className="grid grid-cols-2 gap-4">
+                                    {slide.featuredProducts.length > 0 ? (
+                                        slide.featuredProducts.map(p => (
+                                            <Link key={p.id} to={`/product/${p.id}`} className="group/card bg-black/40 p-3 rounded-2xl border border-white/10 hover:border-white/30 hover:bg-black/60 transition-all backdrop-blur-md hover:-translate-y-1 shadow-lg">
+                                                <div className="aspect-[4/3] bg-zinc-800 rounded-xl overflow-hidden mb-3 relative shadow-inner">
+                                                    <img src={p.image} className="w-full h-full object-cover opacity-90 group-hover/card:opacity-100 transition-opacity" />
+                                                    {(p.isDigital || p.category === 'Digital') && <div className="absolute top-2 right-2 bg-blue-600/90 backdrop-blur text-[8px] font-bold px-2 py-1 rounded-full text-white uppercase shadow-sm">Instant</div>}
+                                                    {p.condition === 'used' && <div className="absolute top-2 left-2 bg-amber-500/90 backdrop-blur text-black text-[8px] font-bold px-2 py-1 rounded-full uppercase shadow-sm">Used</div>}
+                                                </div>
+                                                <div className="px-1">
+                                                    <h4 className="font-bold text-white text-sm truncate group-hover/card:text-purple-300 transition-colors">{p.title}</h4>
+                                                    <div className="flex justify-between items-center mt-1">
+                                                        <p className={`${slide.accentClass} font-bold text-sm`}>${p.price}</p>
+                                                        {p.originalPrice && <span className="text-[10px] text-gray-400 line-through">-${Math.round((1 - p.price/p.originalPrice)*100)}%</span>}
+                                                    </div>
+                                                </div>
+                                            </Link>
+                                        ))
+                                    ) : (
+                                        <div className="col-span-2 h-64 flex items-center justify-center text-white/50 text-sm border border-white/10 rounded-2xl bg-black/20">
+                                            No featured items yet for {slide.categoryFilter}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                </div>
+                );
+            })}
+            
+            {/* Controls Layer */}
+            <div className="absolute inset-0 pointer-events-none z-30">
+                 <div className="container mx-auto h-full flex justify-between items-center px-4">
+                     <button onClick={prevSlide} className="pointer-events-auto p-3 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md transition-all hover:scale-110 border border-white/10 hover:border-white/30 group">
+                         <ChevronLeft size={28} className="group-hover:-translate-x-0.5 transition-transform"/>
+                     </button>
+                     <button onClick={nextSlide} className="pointer-events-auto p-3 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md transition-all hover:scale-110 border border-white/10 hover:border-white/30 group">
+                         <ChevronRight size={28} className="group-hover:translate-x-0.5 transition-transform"/>
+                     </button>
+                 </div>
             </div>
             
             {/* Carousel Indicators */}
-            <div className="absolute bottom-4 left-8 flex gap-2 z-20">
+            <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-3 z-30 pointer-events-none">
                 {heroSlides.map((_, idx) => (
                     <button 
                         key={idx}
                         onClick={() => setHeroIndex(idx)}
-                        className={`w-2 h-2 rounded-full transition-all ${idx === heroIndex ? 'bg-white w-6' : 'bg-white/30 hover:bg-white/60'}`}
+                        className={`h-1.5 rounded-full transition-all duration-500 pointer-events-auto ${idx === heroIndex ? 'bg-white w-8 shadow-[0_0_10px_rgba(255,255,255,0.5)]' : 'bg-white/20 w-2 hover:bg-white/40 hover:w-4'}`}
+                        aria-label={`Go to slide ${idx + 1}`}
                     />
                 ))}
             </div>
