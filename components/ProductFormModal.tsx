@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Product, ProductSource, ProductVariant, ProductSection } from '../types';
 import { Button } from './ui/Button';
-import { X, Plus, Trash2, Globe, DollarSign, Package, LayoutGrid, Tag, Upload, Image as ImageIcon, Edit2, Plus as PlusCircleIcon, Percent, Zap, Download, Clock, Key, AlignLeft, Calendar, HelpCircle, Star, FileText, ArrowUp, ArrowDown, Box, Layers, Settings, ChevronRight, AlertCircle, CheckCircle2, TrendingUp } from 'lucide-react';
+import { X, Plus, Trash2, Globe, DollarSign, Package, LayoutGrid, Tag, Upload, Image as ImageIcon, Edit2, Plus as PlusCircleIcon, Percent, Zap, Download, Clock, Key, AlignLeft, Calendar, HelpCircle, Star, FileText, ArrowUp, ArrowDown, Box, Layers, Settings, ChevronRight, AlertCircle, CheckCircle2, TrendingUp, Euro } from 'lucide-react';
 import { useApp } from '../app/providers';
 
 interface ProductFormModalProps {
@@ -244,7 +244,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
             {/* Tabs Navigation */}
             <div className="flex border-b border-zinc-800 bg-zinc-900/50">
                 <TabButton id="overview" label="Overview" icon={LayoutGrid} />
-                <TabButton id="pricing" label="Pricing" icon={DollarSign} />
+                <TabButton id="pricing" label="Pricing" icon={Euro} />
                 <TabButton id="delivery" label="Settings" icon={Settings} />
                 <TabButton id="content" label="Content" icon={FileText} />
             </div>
@@ -394,7 +394,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                             <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800">
                                 <label className="text-sm font-bold text-gray-400 mb-2 block">Selling Price</label>
                                 <div className="relative">
-                                    <DollarSign className="absolute left-3 top-3 text-gray-500" size={18} />
+                                    <Euro className="absolute left-3 top-3 text-gray-500" size={18} />
                                     <input 
                                         type="number" step="0.01" required
                                         className="w-full pl-10 pr-4 py-2.5 bg-black border border-zinc-800 rounded-xl text-xl font-bold text-white focus:border-green-500 outline-none"
@@ -406,7 +406,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                             <div className="bg-zinc-900 p-5 rounded-2xl border border-zinc-800">
                                 <label className="text-sm font-bold text-gray-400 mb-2 block">Compare At Price</label>
                                 <div className="relative">
-                                    <DollarSign className="absolute left-3 top-3 text-gray-500" size={18} />
+                                    <Euro className="absolute left-3 top-3 text-gray-500" size={18} />
                                     <input 
                                         type="number" step="0.01"
                                         className="w-full pl-10 pr-4 py-2.5 bg-black border border-zinc-800 rounded-xl text-xl font-bold text-gray-400 focus:border-gray-500 outline-none line-through"
@@ -421,7 +421,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                     Cost Per Item <span className="text-xs font-normal text-gray-600 bg-zinc-950 px-2 rounded">Private</span>
                                 </label>
                                 <div className="relative">
-                                    <DollarSign className="absolute left-3 top-3 text-gray-500" size={18} />
+                                    <Euro className="absolute left-3 top-3 text-gray-500" size={18} />
                                     <input 
                                         type="number" step="0.01"
                                         className="w-full pl-10 pr-4 py-2.5 bg-black border border-zinc-800 rounded-xl text-xl font-bold text-white focus:border-blue-500 outline-none"
@@ -446,7 +446,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                 <div>
                                     <p className="text-xs text-gray-500 uppercase font-bold">Profit</p>
                                     <p className={`text-2xl font-bold ${Number(formData.price) - Number(formData.costPrice || 0) > 0 ? 'text-green-400' : 'text-red-400'}`}>
-                                        ${(Number(formData.price) - Number(formData.costPrice || 0)).toFixed(2)}
+                                        €{(Number(formData.price) - Number(formData.costPrice || 0)).toFixed(2)}
                                     </p>
                                 </div>
                                 <div className="w-px bg-zinc-800 h-10 self-center"></div>
@@ -501,7 +501,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                 <h4 className="font-bold text-white border-b border-zinc-800 pb-2">Shipping & Tax</h4>
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
-                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Shipping Cost ($)</label>
+                                        <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Shipping Cost (€)</label>
                                         <input 
                                             type="number" step="0.01"
                                             className="w-full px-3 py-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:border-blue-600 outline-none"
