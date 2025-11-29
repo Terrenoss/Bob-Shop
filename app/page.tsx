@@ -1,4 +1,8 @@
 
+
+
+
+
 'use client';
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
@@ -15,7 +19,8 @@ import {
   Briefcase, Glasses, Footprints, Star, Check, Globe,
   Gamepad, Key, CreditCard, Coins, User, Ghost, Gift, Coffee,
   Sparkles,
-  ArrowLeft
+  ArrowLeft,
+  Flame, Rocket
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 
@@ -135,8 +140,13 @@ const CATEGORY_TREE: MegaCategory[] = [
   }
 ];
 
+// Helper to map string icon names to components
+const IconMap: Record<string, any> = {
+    Gamepad2, Sparkles, Smartphone, Zap, Gift, Star, Flame, Rocket, Globe
+};
+
 export default function HomePage() {
-  const { products, isProductsLoading, categories } = useApp();
+  const { products, isProductsLoading, categories, settings } = useApp();
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   
@@ -158,49 +168,33 @@ export default function HomePage() {
   // Hero Carousel State
   const [heroIndex, setHeroIndex] = useState(0);
 
-  const heroSlides = useMemo(() => [
-    {
-      id: 'digital',
-      subtitle: "DIGITAL MARKET",
-      title: "Instant Digital Delivery",
-      desc: "Get your Game Keys, Gift Cards, and Skins instantly. No waiting.",
-      icon: Gamepad2,
-      color: "from-blue-900/40 to-indigo-900/40",
-      accent: "text-blue-400",
-      border: "border-blue-500/30",
-      tags: ['Gift Cards', 'Skins', 'Game Keys', 'Software'],
-      featuredProducts: products.filter(p => p.category === 'Digital').slice(0, 4)
-    },
-    {
-      id: 'anime',
-      subtitle: "OTAKU COLLECTION",
-      title: "Anime & Manga Import",
-      desc: "Authentic figures, rare TCG cards, and exclusive manga from Japan.",
-      icon: Sparkles,
-      color: "from-pink-900/40 to-purple-900/40",
-      accent: "text-pink-400",
-      border: "border-pink-500/30",
-      tags: ['Figures', 'TCG', 'Cosplay', 'Manga'],
-      featuredProducts: products.filter(p => p.category === 'Anime & Manga').slice(0, 4)
-    },
-    {
-      id: 'tech',
-      subtitle: "NEXT-GEN TECH",
-      title: "High-Performance Gear",
-      desc: "Upgrade your setup with the latest noise-cancelling tech and gadgets.",
-      icon: Smartphone,
-      color: "from-emerald-900/40 to-cyan-900/40",
-      accent: "text-emerald-400",
-      border: "border-emerald-500/30",
-      tags: ['Audio', 'Laptops', 'Gaming', 'Accessories'],
-      featuredProducts: products.filter(p => p.category === 'High-Tech').slice(0, 4)
-    }
-  ], [products]);
+  const heroSlides = useMemo(() => {
+      // Fallback to empty if settings not loaded yet
+      if (!settings.carouselSlides || settings.carouselSlides.length === 0) return [];
 
-  const activeSlide = heroSlides[heroIndex];
+      return settings.carouselSlides.map(slide => ({
+          ...slide,
+          icon: IconMap[slide.iconName] || Sparkles,
+          featuredProducts: products.filter(p => p.category === slide.categoryFilter).slice(0, 4)
+      }));
+  }, [products, settings.carouselSlides]);
 
   const nextSlide = () => setHeroIndex((prev) => (prev + 1) % heroSlides.length);
   const prevSlide = () => setHeroIndex((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+
+  // Auto-play Carousel
+  useEffect(() => {
+      // If interval is 0 or less, disable auto-play
+      if (settings.carouselInterval <= 0 || heroSlides.length <= 1) return;
+
+      const interval = setInterval(() => {
+          nextSlide();
+      }, settings.carouselInterval);
+
+      return () => clearInterval(interval);
+  }, [settings.carouselInterval, heroSlides.length]); 
+
+  const activeSlide = heroSlides[heroIndex];
 
   const horizontalCategories = useMemo(() => {
       const treeCats = CATEGORY_TREE.map(c => c.id);
@@ -310,7 +304,7 @@ export default function HomePage() {
     }
   };
 
-  const ActiveIcon = activeSlide.icon;
+  const ActiveIcon = activeSlide?.icon || Sparkles;
 
   return (
     <div className="container mx-auto pb-12">
@@ -356,17 +350,23 @@ export default function HomePage() {
       </div>
 
       {/* Dynamic Hero Carousel */}
-      {selectedCategory === 'All' && !searchQuery && (
+      {selectedCategory === 'All' && !searchQuery && activeSlide && (
          <div className="mb-12 relative group/hero">
-            <div className={`absolute inset-0 bg-gradient-to-r ${activeSlide.color} rounded-2xl transition-all duration-700`}></div>
+            <div className={`absolute inset-0 bg-gradient-to-r ${activeSlide.colorClass} rounded-2xl transition-all duration-700`}></div>
+            {activeSlide.backgroundImage && (
+                <div 
+                    className="absolute inset-0 bg-cover bg-center rounded-2xl opacity-20 mix-blend-overlay transition-opacity duration-700" 
+                    style={{ backgroundImage: `url(${activeSlide.backgroundImage})` }}
+                ></div>
+            )}
             <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 mix-blend-overlay rounded-2xl"></div>
 
-            <div className={`relative z-10 border ${activeSlide.border} rounded-2xl p-6 md:p-8 flex flex-col lg:flex-row gap-8 transition-all duration-500 min-h-[400px]`}>
+            <div className={`relative z-10 border border-white/10 rounded-2xl p-6 md:p-8 flex flex-col lg:flex-row gap-8 transition-all duration-500 min-h-[400px]`}>
                 
                 {/* Left Side: Featured Info */}
                 <div className="flex-1 flex flex-col justify-center space-y-6">
                     <div>
-                        <div className={`inline-flex items-center gap-2 ${activeSlide.accent} bg-zinc-900/50 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/10 mb-4`}>
+                        <div className={`inline-flex items-center gap-2 ${activeSlide.accentClass} bg-zinc-900/50 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/10 mb-4`}>
                             <ActiveIcon size={14} /> {activeSlide.subtitle}
                         </div>
                         <h2 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4 drop-shadow-lg">
@@ -410,7 +410,7 @@ export default function HomePage() {
                                     </div>
                                     <h4 className="font-bold text-gray-100 text-sm truncate group-hover/card:text-white">{p.title}</h4>
                                     <div className="flex justify-between items-center mt-1">
-                                        <p className={`${activeSlide.accent} font-bold text-xs`}>${p.price}</p>
+                                        <p className={`${activeSlide.accentClass} font-bold text-xs`}>${p.price}</p>
                                         {p.originalPrice && <span className="text-[10px] text-gray-500 line-through">-${Math.round((1 - p.price/p.originalPrice)*100)}%</span>}
                                     </div>
                                 </Link>

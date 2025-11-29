@@ -1,9 +1,6 @@
 
 
-
-
-
-import { Product, Order, User, ProductSource, Coupon, OrderStatusHistory, Review, Category, StoreSettings, Notification, ChatSession, ChatMessage, ChatContext } from '../types';
+import { Product, Order, User, ProductSource, Coupon, OrderStatusHistory, Review, Category, StoreSettings, Notification, ChatSession, ChatMessage, ChatContext, CarouselSlide } from '../types';
 
 // --- Simulated Database (LocalStorage) ---
 
@@ -31,9 +28,47 @@ const INITIAL_CATEGORIES: Category[] = [
   { id: 'cat-8', name: 'Food', description: 'Snacks, Drinks & Gourmet Food' },
 ];
 
+const INITIAL_SLIDES: CarouselSlide[] = [
+    {
+      id: 'digital',
+      subtitle: "DIGITAL MARKET",
+      title: "Instant Digital Delivery",
+      desc: "Get your Game Keys, Gift Cards, and Skins instantly. No waiting.",
+      iconName: "Gamepad2",
+      colorClass: "from-blue-900/40 to-indigo-900/40",
+      accentClass: "text-blue-400",
+      tags: ['Gift Cards', 'Skins', 'Game Keys', 'Software'],
+      categoryFilter: 'Digital'
+    },
+    {
+      id: 'anime',
+      subtitle: "OTAKU COLLECTION",
+      title: "Anime & Manga Import",
+      desc: "Authentic figures, rare TCG cards, and exclusive manga from Japan.",
+      iconName: "Sparkles",
+      colorClass: "from-pink-900/40 to-purple-900/40",
+      accentClass: "text-pink-400",
+      tags: ['Figures', 'TCG', 'Cosplay', 'Manga'],
+      categoryFilter: 'Anime & Manga'
+    },
+    {
+      id: 'tech',
+      subtitle: "NEXT-GEN TECH",
+      title: "High-Performance Gear",
+      desc: "Upgrade your setup with the latest noise-cancelling tech and gadgets.",
+      iconName: "Smartphone",
+      colorClass: "from-emerald-900/40 to-cyan-900/40",
+      accentClass: "text-emerald-400",
+      tags: ['Audio', 'Laptops', 'Gaming', 'Accessories'],
+      categoryFilter: 'High-Tech'
+    }
+];
+
 const INITIAL_SETTINGS: StoreSettings = {
     shippingCost: 0, 
-    taxRate: 0 
+    taxRate: 0,
+    carouselInterval: 5000, // Default 5 seconds
+    carouselSlides: INITIAL_SLIDES
 };
 
 // Initial Seed Data
@@ -178,7 +213,7 @@ const INITIAL_PRODUCTS: Product[] = [
     id: '1',
     sku: 'HOME-LED-001',
     title: 'Smart LED Sunset Lamp',
-    description: 'Create the perfect golden hour vibe in your room anytime. 16 color modes controlled via app.',
+    description: 'Create the perfect golden hour vibe in your room anytime. 16 color modes controlled via app. USB powered, 180 degree rotation.',
     price: 34.99,
     originalPrice: 49.99,
     costPrice: 8.50,
@@ -466,7 +501,12 @@ const INITIAL_COUPONS: Coupon[] = [
 class SettingsService {
     async getSettings(): Promise<StoreSettings> {
         const data = localStorage.getItem(DB_KEYS.SETTINGS);
-        return data ? JSON.parse(data) : INITIAL_SETTINGS;
+        if (data) {
+            const parsed = JSON.parse(data);
+            // Merge with initial settings to ensure new fields (like carouselSlides) are present for existing users
+            return { ...INITIAL_SETTINGS, ...parsed };
+        }
+        return INITIAL_SETTINGS;
     }
 
     async updateSettings(settings: Partial<StoreSettings>): Promise<StoreSettings> {
