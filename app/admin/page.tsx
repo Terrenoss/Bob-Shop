@@ -10,7 +10,7 @@ import { Button } from '../../components/ui/Button';
 import { ProductFormModal } from '../../components/ProductFormModal';
 import { OrderTimeline } from '../../components/OrderTimeline';
 import { FormattedText } from '../../components/FormattedText';
-import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban, MessageSquarePlus, History, CheckCircle, Ticket, Plus, Users, Shield, Clock, ExternalLink, Grid, Tag, KeyRound, Radio, Send, Star, Image as ImageIcon, MessageSquare, Settings, Upload, Eye, List, Key, ShieldCheck, User as UserIcon } from 'lucide-react';
+import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban, MessageSquarePlus, History, CheckCircle, Ticket, Plus, Users, Shield, Clock, ExternalLink, Grid, Tag, KeyRound, Radio, Send, Star, Image as ImageIcon, MessageSquare, Settings, Upload, Eye, List, Key, ShieldCheck, User as UserIcon, Lock } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 
@@ -42,7 +42,7 @@ export default function AdminPage() {
       user: currentUser, 
       createCoupon, updateCoupon, deleteCoupon,
       categories, createCategory, updateCategory, deleteCategory,
-      settings, updateSettings, deleteOrder
+      settings, updateSettings, deleteOrder, formatPrice
   } = useApp();
 
   const [activeTab, setActiveTab] = useState<'suppliers' | 'inventory' | 'orders' | 'coupons' | 'users' | 'categories' | 'reviews' | 'settings' | 'support'>('orders');
@@ -83,6 +83,8 @@ export default function AdminPage() {
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [manualPassword, setManualPassword] = useState('');
+  // Enhanced User Edit Fields
+  const [editingUser, setEditingUser] = useState<Partial<User>>({});
 
   // Coupon Form State
   const [editingCoupon, setEditingCoupon] = useState<Partial<Coupon>>({ 
@@ -175,6 +177,7 @@ export default function AdminPage() {
       
       setAllUsers(usersList);
       setCoupons(allCoupons);
+      // Removed setCategories since it is managed via context
       setReviews(allReviews);
       setChatSessions(chats);
 
@@ -376,14 +379,31 @@ export default function AdminPage() {
   const handleResendInvoice = () => { toast.success(`Invoice sent to ${selectedOrder?.shippingAddress.name}`); };
 
   // User Mgmt Handlers
-  const handleOpenUserModal = (u: User) => { setSelectedUser(u); setManualPassword(''); setIsUserModalOpen(true); };
-  const handleSendResetEmail = async (u: User) => { toast.loading("Sending..."); await new Promise(r => setTimeout(r, 1000)); toast.dismiss(); toast.success(`Reset email sent to ${u.email}`); };
-  const handleManualResetPassword = async () => {
-      if(!selectedUser || !manualPassword) return;
-      await authService.resetPassword(selectedUser.id, manualPassword);
-      toast.success("Password reset manually");
-      setIsUserModalOpen(false);
+  const handleOpenUserModal = (u: User) => { 
+      setSelectedUser(u); 
+      setEditingUser(u); // Initialize edit form with user data
+      setManualPassword(''); 
+      setIsUserModalOpen(true); 
   };
+  
+  const handleSaveUser = async () => {
+      if (!selectedUser) return;
+      try {
+          await authService.update(selectedUser.id, editingUser);
+          
+          if (manualPassword) {
+              await authService.resetPassword(selectedUser.id, manualPassword);
+          }
+          
+          toast.success("User updated successfully");
+          setIsUserModalOpen(false);
+          fetchData();
+      } catch (error) {
+          toast.error("Failed to update user");
+      }
+  };
+
+  const handleSendResetEmail = async (u: User) => { toast.loading("Sending..."); await new Promise(r => setTimeout(r, 1000)); toast.dismiss(); toast.success(`Reset email sent to ${u.email}`); };
   const handleDeleteUser = async (id: string) => {
       if(confirm('Delete user?')) {
           await authService.delete(id);
@@ -655,7 +675,7 @@ export default function AdminPage() {
         {/* COUPONS TAB */}
         {activeTab === 'coupons' && (
             <div className="p-4">
-                <div className="flex justify-end mb-4"><Button onClick={() => handleOpenCouponModal()}><Plus size={16}/> Add Coupon</Button></div>
+                <div className="flex justify-end mb-4"><Button onClick={() => handleOpenCouponModal()}><Plus size={16} className="mr-2"/> Add Coupon</Button></div>
                 <div className="space-y-2">
                     {coupons.map(c => (
                         <div key={c.id} className="p-4 border border-zinc-800 bg-zinc-950 rounded-lg flex justify-between items-center">
@@ -673,7 +693,7 @@ export default function AdminPage() {
         {/* CATEGORIES TAB */}
         {activeTab === 'categories' && (
             <div className="p-4">
-                <div className="flex justify-end mb-4"><Button onClick={() => handleOpenCategoryModal()}><Plus size={16}/> Add Category</Button></div>
+                <div className="flex justify-end mb-4"><Button onClick={() => handleOpenCategoryModal()}><Plus size={16} className="mr-2"/> Add Category</Button></div>
                 <div className="space-y-2">
                     {categories.map(c => (
                         <div key={c.id} className="p-4 border border-zinc-800 bg-zinc-950 rounded-lg flex justify-between items-center">
@@ -741,6 +761,38 @@ export default function AdminPage() {
                     {activeChatSession ? (
                         <>
                             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
+                                {activeChatSession.context?.type === 'order' && activeChatSession.context.data && (
+                                    <div className="mb-4 bg-zinc-800/50 p-4 rounded-xl border border-zinc-700/50 mx-4 mt-2">
+                                        <div className="flex justify-between items-center mb-3 pb-3 border-b border-zinc-700/50">
+                                            <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Related Order (#{(activeChatSession.context.data as Order).id})</span>
+                                            <button 
+                                                onClick={() => openOrderModal(activeChatSession.context!.data as Order)}
+                                                className="text-xs text-blue-400 hover:text-blue-300 flex items-center gap-1"
+                                            >
+                                                View Order Details <ExternalLink size={10} />
+                                            </button>
+                                        </div>
+                                        <div className="flex gap-4">
+                                            <div className="w-16 h-16 bg-black rounded-lg overflow-hidden flex-shrink-0 border border-zinc-700">
+                                                <img src={(activeChatSession.context.data as Order).items[0].image} className="w-full h-full object-cover opacity-80" alt="" />
+                                            </div>
+                                            <div className="flex-grow min-w-0">
+                                                <h4 className="font-bold text-white text-sm line-clamp-1">{(activeChatSession.context.data as Order).items[0].title}</h4>
+                                                <div className="text-xs text-gray-500 mt-1">{(activeChatSession.context.data as Order).items[0].category} &bull; #{(activeChatSession.context.data as Order).items[0].sku || 'NOSKU'}</div>
+                                                <div className="flex justify-between items-end mt-2">
+                                                    <span className="font-bold text-white">{formatPrice((activeChatSession.context.data as Order).total)}</span>
+                                                    <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold uppercase border ${
+                                                        (activeChatSession.context.data as Order).status === 'delivered' ? 'bg-green-900/30 text-green-400 border-green-800' :
+                                                        (activeChatSession.context.data as Order).status === 'cancelled' ? 'bg-red-900/30 text-red-400 border-red-800' :
+                                                        'bg-blue-900/30 text-blue-400 border-blue-800'
+                                                    }`}>
+                                                        {(activeChatSession.context.data as Order).status}
+                                                    </span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                                 {activeChatMessages.map(m => (
                                     <div key={m.id} className={`p-3 rounded-lg max-w-[80%] text-sm ${m.isAdmin ? 'bg-blue-600 text-white self-end ml-auto' : 'bg-zinc-800 border border-zinc-700 text-gray-200 self-start'}`}>
                                         <FormattedText text={m.content} />
@@ -948,29 +1000,144 @@ export default function AdminPage() {
         </div>
       )}
 
-      {/* USER MANAGEMENT MODAL */}
+      {/* --- USER MANAGEMENT MODAL --- */}
       {isUserModalOpen && selectedUser && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-xl shadow-xl p-6">
-                  <h3 className="text-xl font-bold mb-4 text-white">Manage User: {selectedUser.name}</h3>
+              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200">
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                          <UserIcon size={20} /> Manage User
+                      </h3>
+                      <button onClick={() => setIsUserModalOpen(false)} className="text-gray-500 hover:text-white"><X size={20} /></button>
+                  </div>
+                  
                   <div className="space-y-4">
-                      <Button variant="outline" className="w-full border-zinc-700 text-gray-300 hover:text-white" onClick={() => handleSendResetEmail(selectedUser)}>
-                          <Mail size={16} className="mr-2"/> Send Password Reset Email
-                      </Button>
+                      {/* Edit Fields */}
+                      <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-500 uppercase">Full Name</label>
+                          <input 
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" 
+                              value={editingUser.name || ''} 
+                              onChange={e => setEditingUser({...editingUser, name: e.target.value})}
+                          />
+                      </div>
+                      <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-500 uppercase">Email Address</label>
+                          <input 
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" 
+                              value={editingUser.email || ''} 
+                              onChange={e => setEditingUser({...editingUser, email: e.target.value})}
+                          />
+                      </div>
+                      <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-500 uppercase">Role</label>
+                          <select 
+                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none"
+                              value={editingUser.role || 'customer'}
+                              onChange={e => setEditingUser({...editingUser, role: e.target.value as 'admin'|'customer'})}
+                          >
+                              <option value="customer">Customer</option>
+                              <option value="admin">Admin</option>
+                          </select>
+                      </div>
+
                       <div className="border-t border-zinc-800 pt-4">
-                          <label className="block text-sm font-bold mb-2 text-gray-300">Manual Password Reset</label>
-                          <div className="flex gap-2">
-                              <input className="flex-1 border border-zinc-700 bg-zinc-950 rounded px-3 py-2 text-white focus:border-blue-600 outline-none" placeholder="New Password" value={manualPassword} onChange={e => setManualPassword(e.target.value)} />
-                              <Button onClick={handleManualResetPassword}>Update</Button>
+                          <label className="block text-sm font-bold mb-2 text-gray-300 flex items-center gap-2">
+                              <Lock size={14} /> Password Reset
+                          </label>
+                          <div className="flex gap-2 mb-2">
+                              <input 
+                                  className="flex-1 border border-zinc-700 bg-zinc-950 rounded px-3 py-2 text-white focus:border-blue-600 outline-none text-sm" 
+                                  placeholder="New Password (Optional)" 
+                                  value={manualPassword} 
+                                  onChange={e => setManualPassword(e.target.value)} 
+                              />
+                          </div>
+                          <Button variant="outline" size="sm" className="w-full border-zinc-700 text-gray-400 hover:text-white text-xs" onClick={() => handleSendResetEmail(selectedUser)}>
+                              <Mail size={12} className="mr-2"/> Send Reset Email Instead
+                          </Button>
+                      </div>
+
+                      <div className="border-t border-zinc-800 pt-4">
+                          <button onClick={() => handleDeleteUser(selectedUser.id)} className="text-red-500 text-sm hover:underline w-full text-center hover:text-red-400 flex items-center justify-center gap-2">
+                              <Trash2 size={14} /> Delete User Account permanently
+                          </button>
+                      </div>
+                  </div>
+                  
+                  <div className="mt-6 flex justify-end gap-3 pt-4 border-t border-zinc-800">
+                      <Button variant="secondary" onClick={() => setIsUserModalOpen(false)}>Cancel</Button>
+                      <Button onClick={handleSaveUser}>Save Changes</Button>
+                  </div>
+              </div>
+          </div>
+      )}
+
+      {/* --- COUPON MODAL --- */}
+      {isCouponModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200">
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                          <Ticket size={20} /> {editingCoupon.id ? 'Edit Coupon' : 'Create Coupon'}
+                      </h3>
+                      <button onClick={() => setIsCouponModalOpen(false)} className="text-gray-500 hover:text-white"><X size={20} /></button>
+                  </div>
+                  <form onSubmit={handleSaveCoupon} className="space-y-4">
+                      <div>
+                          <label className="text-xs font-bold text-gray-500 uppercase">Coupon Code</label>
+                          <input required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white uppercase font-mono tracking-wider focus:border-blue-600 outline-none" value={editingCoupon.code} onChange={e => setEditingCoupon({...editingCoupon, code: e.target.value})} placeholder="CODE123" />
+                      </div>
+                      <div className="grid grid-cols-2 gap-4">
+                          <div>
+                              <label className="text-xs font-bold text-gray-500 uppercase">Type</label>
+                              <select className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingCoupon.type} onChange={e => setEditingCoupon({...editingCoupon, type: e.target.value as any})}>
+                                  <option value="percent">Percentage (%)</option>
+                                  <option value="fixed">Fixed Amount ($)</option>
+                              </select>
+                          </div>
+                          <div>
+                              <label className="text-xs font-bold text-gray-500 uppercase">Value</label>
+                              <input required type="number" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingCoupon.value} onChange={e => setEditingCoupon({...editingCoupon, value: Number(e.target.value)})} />
                           </div>
                       </div>
-                      <div className="border-t border-zinc-800 pt-4">
-                          <button onClick={() => handleDeleteUser(selectedUser.id)} className="text-red-500 text-sm hover:underline w-full text-center hover:text-red-400">Delete User Account</button>
+                      <div>
+                          <label className="text-xs font-bold text-gray-500 uppercase">Minimum Order ($)</label>
+                          <input type="number" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingCoupon.minOrder} onChange={e => setEditingCoupon({...editingCoupon, minOrder: Number(e.target.value)})} />
                       </div>
+                      <div className="flex justify-end gap-3 pt-4">
+                          <Button variant="secondary" type="button" onClick={() => setIsCouponModalOpen(false)}>Cancel</Button>
+                          <Button type="submit">Save Coupon</Button>
+                      </div>
+                  </form>
+              </div>
+          </div>
+      )}
+
+      {/* --- CATEGORY MODAL --- */}
+      {isCategoryModalOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
+              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200">
+                  <div className="flex justify-between items-center mb-6">
+                      <h3 className="text-xl font-bold text-white flex items-center gap-2">
+                          <Grid size={20} /> {editingCategory.id ? 'Edit Category' : 'Create Category'}
+                      </h3>
+                      <button onClick={() => setIsCategoryModalOpen(false)} className="text-gray-500 hover:text-white"><X size={20} /></button>
                   </div>
-                  <div className="mt-6 flex justify-end">
-                      <Button variant="secondary" onClick={() => setIsUserModalOpen(false)}>Close</Button>
-                  </div>
+                  <form onSubmit={handleSaveCategory} className="space-y-4">
+                      <div>
+                          <label className="text-xs font-bold text-gray-500 uppercase">Category Name</label>
+                          <input required className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingCategory.name} onChange={e => setEditingCategory({...editingCategory, name: e.target.value})} placeholder="e.g. Electronics" />
+                      </div>
+                      <div>
+                          <label className="text-xs font-bold text-gray-500 uppercase">Description</label>
+                          <textarea rows={3} className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingCategory.description} onChange={e => setEditingCategory({...editingCategory, description: e.target.value})} placeholder="Category description..." />
+                      </div>
+                      <div className="flex justify-end gap-3 pt-4">
+                          <Button variant="secondary" type="button" onClick={() => setIsCategoryModalOpen(false)}>Cancel</Button>
+                          <Button type="submit">Save Category</Button>
+                      </div>
+                  </form>
               </div>
           </div>
       )}
@@ -983,4 +1150,4 @@ export default function AdminPage() {
       />
     </div>
   );
-};
+}

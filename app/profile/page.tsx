@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../providers';
 import { Button } from '../../components/ui/Button';
-import { User, Lock, MapPin, Save, Shield, Mail, MessageSquare, Send, Paperclip, Bold, Italic, Strikethrough, List, ListOrdered, X } from 'lucide-react';
+import { User, Lock, MapPin, Save, Shield, Mail, MessageSquare, Send, Paperclip, Bold, Italic, Strikethrough, List, ListOrdered, X, Camera, Upload } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 import { chatService } from '../../lib/mockNestService';
@@ -25,6 +25,9 @@ export default function Page() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  // Fake Avatar State
+  const [avatar, setAvatar] = useState<string | null>(null);
 
   // Derived state for context display (prioritize session context for persistence, fallback to transient context)
   const displayContext = chatSession?.context || chatContext;
@@ -102,6 +105,18 @@ export default function Page() {
       if(fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const handleAvatarUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const file = e.target.files?.[0];
+      if(file) {
+          const reader = new FileReader();
+          reader.onload = () => {
+              setAvatar(reader.result as string);
+              toast.success("Profile picture updated");
+          };
+          reader.readAsDataURL(file);
+      }
+  };
+
   const handleInsertText = (startTag: string, endTag: string = '') => {
       const textarea = chatInputRef.current;
       if (!textarea) return;
@@ -124,27 +139,125 @@ export default function Page() {
 
   return (
     <div className="max-w-6xl mx-auto animate-in fade-in duration-500">
-      <h1 className="text-3xl font-bold text-white mb-8">Account Settings</h1>
+      <div className="flex items-center gap-4 mb-8">
+          <div className="w-16 h-16 rounded-full bg-gradient-to-br from-purple-600 to-blue-600 flex items-center justify-center text-2xl font-bold text-white shadow-lg overflow-hidden border-2 border-zinc-800">
+              {avatar ? <img src={avatar} className="w-full h-full object-cover" /> : user.name.charAt(0).toUpperCase()}
+          </div>
+          <div>
+              <h1 className="text-3xl font-bold text-white">Account Settings</h1>
+              <p className="text-gray-400 text-sm">Manage your profile and preferences</p>
+          </div>
+      </div>
+
       <div className="flex flex-col md:flex-row gap-8">
           <div className="w-full md:w-64 flex-shrink-0 space-y-2">
-              <button onClick={() => setActiveTab('general')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'general' ? 'bg-purple-600 text-white' : 'bg-zinc-900 text-gray-400 hover:text-white'}`}><User size={18} /> General</button>
-              <button onClick={() => setActiveTab('security')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'security' ? 'bg-purple-600 text-white' : 'bg-zinc-900 text-gray-400 hover:text-white'}`}><Lock size={18} /> Security</button>
-              <button onClick={() => setActiveTab('address')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'address' ? 'bg-purple-600 text-white' : 'bg-zinc-900 text-gray-400 hover:text-white'}`}><MapPin size={18} /> Address</button>
-              <button onClick={() => setActiveTab('support')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'support' ? 'bg-purple-600 text-white' : 'bg-zinc-900 text-gray-400 hover:text-white'}`}><MessageSquare size={18} /> Support Chat</button>
+              <button onClick={() => setActiveTab('general')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'general' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><User size={18} /> General</button>
+              <button onClick={() => setActiveTab('security')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'security' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><Lock size={18} /> Security</button>
+              <button onClick={() => setActiveTab('address')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'address' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><MapPin size={18} /> Address</button>
+              <button onClick={() => setActiveTab('support')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'support' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><MessageSquare size={18} /> Support Chat</button>
           </div>
 
-          <div className="flex-1 bg-zinc-900 rounded-2xl border border-zinc-800 p-8 shadow-sm min-h-[500px] flex flex-col">
-              {activeTab === 'general' && <form onSubmit={handleGeneralSubmit} className="space-y-6"><div className="space-y-1"><label className="text-sm text-gray-400">Name</label><input required value={generalForm.name} onChange={e => setGeneralForm({...generalForm, name: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white" /></div><div className="space-y-1"><label className="text-sm text-gray-400">Email</label><input type="email" required value={generalForm.email} onChange={e => setGeneralForm({...generalForm, email: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white" /></div><Button type="submit" isLoading={loading}>Save</Button></form>}
-              {activeTab === 'security' && <form onSubmit={handleSecuritySubmit} className="space-y-6"><div className="space-y-1"><label className="text-sm text-gray-400">New Password</label><input type="password" required value={securityForm.newPassword} onChange={e => setSecurityForm({...securityForm, newPassword: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white" /></div><Button type="submit" isLoading={loading}>Update</Button></form>}
-              {activeTab === 'address' && <form onSubmit={handleAddressSubmit} className="space-y-6"><div className="space-y-1"><label className="text-sm text-gray-400">Address</label><input required value={addressForm.line1} onChange={e => setAddressForm({...addressForm, line1: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white" /></div><Button type="submit" isLoading={loading}>Save</Button></form>}
+          <div className="flex-1 bg-zinc-900 rounded-2xl border border-zinc-800 p-8 shadow-sm min-h-[500px] flex flex-col relative overflow-hidden">
+              
+              {activeTab === 'general' && (
+                  <form onSubmit={handleGeneralSubmit} className="space-y-8 max-w-xl animate-in fade-in slide-in-from-right-4">
+                      <div>
+                          <h3 className="text-lg font-bold text-white mb-1">Profile Information</h3>
+                          <p className="text-sm text-gray-500 mb-6">Update your public profile details.</p>
+                          
+                          <div className="flex items-center gap-6 mb-6">
+                              <div className="w-24 h-24 rounded-full bg-zinc-800 border-2 border-dashed border-zinc-600 flex items-center justify-center relative group cursor-pointer overflow-hidden">
+                                  {avatar ? <img src={avatar} className="w-full h-full object-cover" /> : <User size={32} className="text-zinc-600" />}
+                                  <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                                      <Camera size={24} className="text-white" />
+                                  </div>
+                                  <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={handleAvatarUpload} />
+                              </div>
+                              <div>
+                                  <Button type="button" size="sm" variant="secondary" className="relative">
+                                      Upload New Picture
+                                      <input type="file" className="absolute inset-0 opacity-0 cursor-pointer" accept="image/*" onChange={handleAvatarUpload} />
+                                  </Button>
+                                  <p className="text-xs text-gray-500 mt-2">JPG, GIF or PNG. Max 1MB.</p>
+                              </div>
+                          </div>
+
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                              <div className="space-y-1.5">
+                                  <label className="text-xs font-bold text-gray-400 uppercase">Full Name</label>
+                                  <input required value={generalForm.name} onChange={e => setGeneralForm({...generalForm, name: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-blue-600 outline-none transition-all" />
+                              </div>
+                              <div className="space-y-1.5">
+                                  <label className="text-xs font-bold text-gray-400 uppercase">Email Address</label>
+                                  <input type="email" required value={generalForm.email} onChange={e => setGeneralForm({...generalForm, email: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-blue-600 outline-none transition-all" />
+                              </div>
+                          </div>
+                      </div>
+                      <div className="pt-6 border-t border-zinc-800">
+                          <Button type="submit" isLoading={loading}>Save Changes</Button>
+                      </div>
+                  </form>
+              )}
+
+              {activeTab === 'security' && (
+                  <form onSubmit={handleSecuritySubmit} className="space-y-8 max-w-xl animate-in fade-in slide-in-from-right-4">
+                      <div>
+                          <h3 className="text-lg font-bold text-white mb-1">Security Settings</h3>
+                          <p className="text-sm text-gray-500 mb-6">Manage your password and security preferences.</p>
+                          
+                          <div className="space-y-4">
+                              <div className="space-y-1.5">
+                                  <label className="text-xs font-bold text-gray-400 uppercase">Current Password</label>
+                                  <input type="password" required value={securityForm.oldPassword} onChange={e => setSecurityForm({...securityForm, oldPassword: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-blue-600 outline-none transition-all" />
+                              </div>
+                              <div className="space-y-1.5">
+                                  <label className="text-xs font-bold text-gray-400 uppercase">New Password</label>
+                                  <input type="password" required value={securityForm.newPassword} onChange={e => setSecurityForm({...securityForm, newPassword: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-blue-600 outline-none transition-all" />
+                              </div>
+                          </div>
+                      </div>
+                      <div className="pt-6 border-t border-zinc-800">
+                          <Button type="submit" isLoading={loading}>Update Password</Button>
+                      </div>
+                  </form>
+              )}
+
+              {activeTab === 'address' && (
+                  <form onSubmit={handleAddressSubmit} className="space-y-8 max-w-xl animate-in fade-in slide-in-from-right-4">
+                      <div>
+                          <h3 className="text-lg font-bold text-white mb-1">Shipping Address</h3>
+                          <p className="text-sm text-gray-500 mb-6">This address will be used as default for checkout.</p>
+                          
+                          <div className="space-y-4">
+                              <div className="space-y-1.5">
+                                  <label className="text-xs font-bold text-gray-400 uppercase">Address Line</label>
+                                  <input required value={addressForm.line1} onChange={e => setAddressForm({...addressForm, line1: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-blue-600 outline-none transition-all" placeholder="123 Main St" />
+                              </div>
+                              <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-1.5">
+                                      <label className="text-xs font-bold text-gray-400 uppercase">City</label>
+                                      <input required value={addressForm.city} onChange={e => setAddressForm({...addressForm, city: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-blue-600 outline-none transition-all" />
+                                  </div>
+                                  <div className="space-y-1.5">
+                                      <label className="text-xs font-bold text-gray-400 uppercase">Postal Code</label>
+                                      <input required value={addressForm.postalCode} onChange={e => setAddressForm({...addressForm, postalCode: e.target.value})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-xl text-white focus:border-blue-600 outline-none transition-all" />
+                                  </div>
+                              </div>
+                          </div>
+                      </div>
+                      <div className="pt-6 border-t border-zinc-800">
+                          <Button type="submit" isLoading={loading}>Save Address</Button>
+                      </div>
+                  </form>
+              )}
               
               {activeTab === 'support' && (
-                  <div className="flex flex-col h-full animate-in fade-in slide-in-from-right-4">
-                      <div className="flex-1 flex flex-col bg-zinc-950 rounded-xl border border-zinc-800 overflow-hidden">
-                          <div className="flex-grow overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                  <div className="flex flex-col h-full animate-in fade-in slide-in-from-right-4 absolute inset-0">
+                      <div className="flex-1 flex flex-col bg-zinc-900 overflow-hidden">
+                          <div className="flex-grow overflow-y-auto p-6 space-y-4 custom-scrollbar bg-[#18181b]">
                               {displayContext?.type === 'order' && displayContext.data && (
-                                  <div className="mb-4 bg-zinc-900 p-4 rounded-xl border border-zinc-800">
-                                      <div className="flex justify-between items-center mb-3 pb-3 border-b border-zinc-800">
+                                  <div className="mb-4 bg-zinc-800/50 p-4 rounded-xl border border-zinc-700/50">
+                                      <div className="flex justify-between items-center mb-3 pb-3 border-b border-zinc-700/50">
                                           <span className="text-xs font-bold text-gray-400 uppercase tracking-wider">Related Order (#{(displayContext.data as Order).id})</span>
                                           {/* Context locked once active to preserve history */}
                                       </div>
@@ -171,9 +284,9 @@ export default function Page() {
                               )}
                               {chatMessages.map(msg => (
                                   <div key={msg.id} className={`flex ${!msg.isAdmin ? 'justify-end' : 'justify-start'}`}>
-                                      <div className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm ${!msg.isAdmin ? 'bg-purple-600 text-white' : 'bg-zinc-800 text-gray-200'}`}>
+                                      <div className={`max-w-[80%] rounded-2xl px-5 py-3 text-sm shadow-sm ${!msg.isAdmin ? 'bg-purple-600 text-white' : 'bg-zinc-800 text-gray-200 border border-zinc-700'}`}>
                                           <FormattedText text={msg.content} />
-                                          <p className="text-[10px] mt-1 text-right opacity-70">{new Date(msg.timestamp).toLocaleTimeString()}</p>
+                                          <p className={`text-[10px] mt-1 text-right ${!msg.isAdmin ? 'text-purple-200' : 'text-gray-500'}`}>{new Date(msg.timestamp).toLocaleTimeString()}</p>
                                       </div>
                                   </div>
                               ))}
@@ -189,18 +302,20 @@ export default function Page() {
                                       </span>
                                   </div>
                               )}
-                              <div className="bg-[#2d2d30] rounded-lg border border-zinc-700 overflow-hidden">
-                                  <div className="flex items-center gap-1 p-1.5 bg-[#2d2d30] border-b border-zinc-700">
-                                      <button onClick={() => handleInsertText('**', '**')} className="p-1.5 text-gray-400 hover:text-white"><Bold size={14}/></button>
-                                      <button onClick={() => handleInsertText('_', '_')} className="p-1.5 text-gray-400 hover:text-white"><Italic size={14}/></button>
-                                      <button onClick={() => handleInsertText('~~', '~~')} className="p-1.5 text-gray-400 hover:text-white"><Strikethrough size={14}/></button>
-                                      <button onClick={() => handleInsertText('\n- ')} className="p-1.5 text-gray-400 hover:text-white"><List size={14}/></button>
+                              <div className="bg-[#2d2d30] rounded-lg border border-zinc-700 overflow-hidden shadow-inner">
+                                  <div className="flex items-center gap-1 p-1.5 bg-[#252528] border-b border-zinc-700">
+                                      <button onClick={() => handleInsertText('**', '**')} className="p-1.5 text-gray-400 hover:text-white rounded hover:bg-zinc-700"><Bold size={14}/></button>
+                                      <button onClick={() => handleInsertText('_', '_')} className="p-1.5 text-gray-400 hover:text-white rounded hover:bg-zinc-700"><Italic size={14}/></button>
+                                      <button onClick={() => handleInsertText('~~', '~~')} className="p-1.5 text-gray-400 hover:text-white rounded hover:bg-zinc-700"><Strikethrough size={14}/></button>
+                                      <button onClick={() => handleInsertText('\n- ')} className="p-1.5 text-gray-400 hover:text-white rounded hover:bg-zinc-700"><List size={14}/></button>
                                   </div>
                                   <textarea ref={chatInputRef} value={chatInput} onChange={e => setChatInput(e.target.value)} placeholder="Type a message..." className="w-full bg-[#1e1e21] text-gray-200 text-sm p-4 outline-none resize-none h-24" onKeyDown={e => { if(e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}} />
-                                  <div className="flex justify-between items-center p-3 bg-[#2d2d30] border-t border-zinc-700">
-                                      <button className="text-gray-500 hover:text-white p-2 hover:bg-zinc-700 rounded-full" onClick={() => fileInputRef.current?.click()}><Paperclip size={18} /></button>
-                                      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
-                                      <button onClick={() => handleSendMessage()} disabled={!chatInput.trim()} className="bg-red-600 hover:bg-red-500 text-white rounded-lg p-2 px-6 transition-colors"><Send size={18} /></button>
+                                  <div className="flex justify-between items-center p-3 bg-[#252528] border-t border-zinc-700">
+                                      <div className="relative">
+                                          <button className="text-gray-500 hover:text-white p-2 hover:bg-zinc-700 rounded-full transition-colors" onClick={() => fileInputRef.current?.click()}><Paperclip size={18} /></button>
+                                          <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+                                      </div>
+                                      <button onClick={() => handleSendMessage()} disabled={!chatInput.trim()} className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white rounded-lg p-2 px-6 transition-all shadow-lg hover:shadow-purple-900/20 disabled:opacity-50 disabled:cursor-not-allowed"><Send size={18} /></button>
                                   </div>
                               </div>
                           </div>
