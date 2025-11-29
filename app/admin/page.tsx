@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -10,7 +9,7 @@ import { Button } from '../../components/ui/Button';
 import { ProductFormModal } from '../../components/ProductFormModal';
 import { OrderTimeline } from '../../components/OrderTimeline';
 import { FormattedText } from '../../components/FormattedText';
-import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban, MessageSquarePlus, History, CheckCircle, Ticket, Plus, Users, Shield, Clock, ExternalLink, Grid, Tag, KeyRound, Radio, Send, Star, Image as ImageIcon, MessageSquare, Settings, Upload, Eye, List, Key, ShieldCheck, User as UserIcon, Lock } from 'lucide-react';
+import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban, MessageSquarePlus, History, CheckCircle, Ticket, Plus, Users, Shield, Clock, ExternalLink, Grid, Tag, KeyRound, Radio, Send, Star, Image as ImageIcon, MessageSquare, Settings, Upload, Eye, List, Key, ShieldCheck, User as UserIcon, Lock, ChevronRight } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 
@@ -82,6 +81,7 @@ export default function AdminPage() {
   const [userSearch, setUserSearch] = useState('');
   const [isUserModalOpen, setIsUserModalOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [selectedUserOrders, setSelectedUserOrders] = useState<Order[]>([]); // New: Store orders for selected user
   const [manualPassword, setManualPassword] = useState('');
   // Enhanced User Edit Fields
   const [editingUser, setEditingUser] = useState<Partial<User>>({});
@@ -128,6 +128,19 @@ export default function AdminPage() {
           }
       }
   }, [searchParams, products]);
+
+  // Fetch User Orders when selected user changes
+  useEffect(() => {
+      const fetchUserHistory = async () => {
+          if (selectedUser) {
+              const userOrders = await ordersService.findAll(selectedUser.id);
+              setSelectedUserOrders(userOrders);
+          } else {
+              setSelectedUserOrders([]);
+          }
+      };
+      fetchUserHistory();
+  }, [selectedUser]);
 
   // Order Item Local State Sync
   useEffect(() => {
@@ -177,7 +190,6 @@ export default function AdminPage() {
       
       setAllUsers(usersList);
       setCoupons(allCoupons);
-      // Removed setCategories since it is managed via context
       setReviews(allReviews);
       setChatSessions(chats);
 
@@ -923,7 +935,23 @@ export default function AdminPage() {
                             
                             {/* Customer Info */}
                             <div className="bg-zinc-900 rounded-xl shadow-sm border border-zinc-800 p-6">
-                                <h3 className="font-bold text-gray-200 mb-3 flex items-center gap-2"><UserIcon size={16}/> Customer</h3>
+                                <div className="flex justify-between items-start mb-3">
+                                    <h3 className="font-bold text-gray-200 flex items-center gap-2"><UserIcon size={16}/> Customer</h3>
+                                    <button 
+                                        onClick={() => {
+                                            const user = allUsers.find(u => u.id === selectedOrder.userId);
+                                            if (user) {
+                                                closeOrderModal();
+                                                handleOpenUserModal(user);
+                                            } else {
+                                                toast.error("User profile not found");
+                                            }
+                                        }}
+                                        className="text-xs text-blue-400 hover:text-blue-300 font-bold uppercase tracking-wide flex items-center gap-1"
+                                    >
+                                        View Profile <ArrowUpRight size={10} />
+                                    </button>
+                                </div>
                                 <div className="text-sm space-y-2">
                                     <div className="flex justify-between"><span className="text-gray-500">Name:</span> <span className="font-medium text-white">{selectedOrder.shippingAddress.name}</span></div>
                                     <div className="flex justify-between"><span className="text-gray-500">User ID:</span> <span className="font-mono text-xs text-gray-400">{selectedOrder.userId}</span></div>
@@ -1003,7 +1031,7 @@ export default function AdminPage() {
       {/* --- USER MANAGEMENT MODAL --- */}
       {isUserModalOpen && selectedUser && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200">
+              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
                   <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold text-white flex items-center gap-2">
                           <UserIcon size={20} /> Manage User
@@ -1011,34 +1039,80 @@ export default function AdminPage() {
                       <button onClick={() => setIsUserModalOpen(false)} className="text-gray-500 hover:text-white"><X size={20} /></button>
                   </div>
                   
-                  <div className="space-y-4">
+                  <div className="space-y-6">
                       {/* Edit Fields */}
-                      <div className="space-y-1">
-                          <label className="text-xs font-bold text-gray-500 uppercase">Full Name</label>
-                          <input 
-                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" 
-                              value={editingUser.name || ''} 
-                              onChange={e => setEditingUser({...editingUser, name: e.target.value})}
-                          />
+                      <div className="space-y-4">
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Full Name</label>
+                            <input 
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" 
+                                value={editingUser.name || ''} 
+                                onChange={e => setEditingUser({...editingUser, name: e.target.value})}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Email Address</label>
+                            <input 
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" 
+                                value={editingUser.email || ''} 
+                                onChange={e => setEditingUser({...editingUser, email: e.target.value})}
+                            />
+                        </div>
+                        <div className="space-y-1">
+                            <label className="text-xs font-bold text-gray-500 uppercase">Role</label>
+                            <select 
+                                className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none"
+                                value={editingUser.role || 'customer'}
+                                onChange={e => setEditingUser({...editingUser, role: e.target.value as 'admin'|'customer'})}
+                            >
+                                <option value="customer">Customer</option>
+                                <option value="admin">Admin</option>
+                            </select>
+                        </div>
                       </div>
-                      <div className="space-y-1">
-                          <label className="text-xs font-bold text-gray-500 uppercase">Email Address</label>
-                          <input 
-                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" 
-                              value={editingUser.email || ''} 
-                              onChange={e => setEditingUser({...editingUser, email: e.target.value})}
-                          />
-                      </div>
-                      <div className="space-y-1">
-                          <label className="text-xs font-bold text-gray-500 uppercase">Role</label>
-                          <select 
-                              className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none"
-                              value={editingUser.role || 'customer'}
-                              onChange={e => setEditingUser({...editingUser, role: e.target.value as 'admin'|'customer'})}
-                          >
-                              <option value="customer">Customer</option>
-                              <option value="admin">Admin</option>
-                          </select>
+
+                      {/* Purchase Statistics */}
+                      <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800">
+                          <h4 className="text-sm font-bold text-white mb-3 flex items-center gap-2">
+                              <History size={16} /> Purchase History
+                          </h4>
+                          <div className="grid grid-cols-2 gap-4 mb-4">
+                              <div className="bg-zinc-900 p-3 rounded-lg border border-zinc-800">
+                                  <span className="text-xs text-gray-500 uppercase font-bold block mb-1">Total Orders</span>
+                                  <span className="text-xl font-bold text-white">{selectedUserOrders.length}</span>
+                              </div>
+                              <div className="bg-zinc-900 p-3 rounded-lg border border-zinc-800">
+                                  <span className="text-xs text-gray-500 uppercase font-bold block mb-1">Total Spent</span>
+                                  <span className="text-xl font-bold text-green-400">
+                                      {formatPrice(selectedUserOrders.filter(o => o.status !== 'cancelled').reduce((acc, o) => acc + o.total, 0))}
+                                  </span>
+                              </div>
+                          </div>
+                          
+                          <div className="max-h-40 overflow-y-auto custom-scrollbar border-t border-zinc-800 pt-2">
+                              {selectedUserOrders.length > 0 ? (
+                                  <table className="w-full text-left text-xs">
+                                      <tbody className="divide-y divide-zinc-800">
+                                          {selectedUserOrders.slice(0, 10).map(order => (
+                                              <tr key={order.id} className="hover:bg-zinc-900/50 cursor-pointer" onClick={() => { setIsUserModalOpen(false); openOrderModal(order); }}>
+                                                  <td className="py-2 text-blue-400 font-mono">#{order.id.replace('ord-', '')}</td>
+                                                  <td className="py-2 text-gray-400">{new Date(order.date).toLocaleDateString()}</td>
+                                                  <td className="py-2 text-white font-bold">{formatPrice(order.total)}</td>
+                                                  <td className="py-2 text-right">
+                                                      <span className={`px-1.5 py-0.5 rounded text-[10px] uppercase font-bold ${
+                                                          order.status === 'delivered' ? 'text-green-400 bg-green-900/20' : 
+                                                          order.status === 'cancelled' ? 'text-red-400 bg-red-900/20' : 
+                                                          'text-yellow-400 bg-yellow-900/20'
+                                                      }`}>{order.status}</span>
+                                                  </td>
+                                              </tr>
+                                          ))}
+                                      </tbody>
+                                  </table>
+                              ) : (
+                                  <p className="text-xs text-gray-500 text-center py-2">No purchase history found.</p>
+                              )}
+                          </div>
                       </div>
 
                       <div className="border-t border-zinc-800 pt-4">

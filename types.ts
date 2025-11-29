@@ -11,6 +11,12 @@ export interface ProductVariant {
   options: string[]; // e.g. ["Red", "Blue"], ["S", "M", "L"]
 }
 
+export interface ProductSection {
+  title: string;
+  content: string;
+  image?: string;
+}
+
 export interface Product {
   id: string;
   sku?: string; // Stock Keeping Unit
@@ -35,6 +41,9 @@ export interface Product {
   isPublished: boolean;
   stock: number;
   variants?: ProductVariant[];
+
+  // Rich Content
+  sections?: ProductSection[];
 
   // Digital Product Fields
   isDigital?: boolean;

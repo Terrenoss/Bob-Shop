@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useApp } from '../providers';
 import { Button } from '../../components/ui/Button';
-import { User, Lock, MapPin, Save, Shield, Mail, MessageSquare, Send, Paperclip, Bold, Italic, Strikethrough, List, ListOrdered, X, Camera, Upload } from 'lucide-react';
+import { User, Lock, MapPin, Save, Shield, Mail, MessageSquare, Send, Paperclip, Bold, Italic, Strikethrough, List, ListOrdered, X, Camera, Upload, ShoppingBag, DollarSign } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
-import { chatService } from '../../lib/mockNestService';
+import { chatService, ordersService } from '../../lib/mockNestService';
 import { ChatMessage, ChatSession, Order } from '../../types';
 import { FormattedText } from '../../components/FormattedText';
 
@@ -25,6 +25,7 @@ export default function Page() {
   const chatEndRef = useRef<HTMLDivElement>(null);
   const chatInputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [userOrders, setUserOrders] = useState<Order[]>([]);
   
   // Fake Avatar State
   const [avatar, setAvatar] = useState<string | null>(null);
@@ -38,6 +39,13 @@ export default function Page() {
       if (user) {
           setGeneralForm({ name: user.name, email: user.email });
           setAddressForm(user.defaultAddress || { ...addressForm, name: user.name });
+          
+          // Fetch orders for stats
+          const fetchStats = async () => {
+              const orders = await ordersService.findAll(user.id);
+              setUserOrders(orders);
+          };
+          fetchStats();
       }
   }, [user, searchParams]);
 
@@ -161,6 +169,31 @@ export default function Page() {
               
               {activeTab === 'general' && (
                   <form onSubmit={handleGeneralSubmit} className="space-y-8 max-w-xl animate-in fade-in slide-in-from-right-4">
+                      
+                      {/* Stats Section */}
+                      <div className="grid grid-cols-2 gap-4 mb-6">
+                          <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 flex items-center gap-3">
+                              <div className="p-2 bg-purple-900/20 text-purple-400 rounded-lg">
+                                  <ShoppingBag size={20} />
+                              </div>
+                              <div>
+                                  <p className="text-xs text-gray-500 uppercase font-bold">Total Orders</p>
+                                  <p className="text-xl font-bold text-white">{userOrders.length}</p>
+                              </div>
+                          </div>
+                          <div className="bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex items-center gap-3">
+                              <div className="p-2 bg-green-900/20 text-green-400 rounded-lg">
+                                  <DollarSign size={20} />
+                              </div>
+                              <div>
+                                  <p className="text-xs text-gray-500 uppercase font-bold">Total Spent</p>
+                                  <p className="text-xl font-bold text-white">
+                                      {formatPrice(userOrders.filter(o => o.status !== 'cancelled').reduce((acc, o) => acc + o.total, 0))}
+                                  </p>
+                              </div>
+                          </div>
+                      </div>
+
                       <div>
                           <h3 className="text-lg font-bold text-white mb-1">Profile Information</h3>
                           <p className="text-sm text-gray-500 mb-6">Update your public profile details.</p>

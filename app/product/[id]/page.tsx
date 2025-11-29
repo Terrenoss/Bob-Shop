@@ -1,4 +1,6 @@
 
+
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -419,6 +421,33 @@ export default function Page() {
           </div>
         </div>
       </div>
+
+      {/* --- NEW: DETAILED CONTENT SECTIONS --- */}
+      {product.sections && product.sections.length > 0 && (
+          <div className="space-y-12 py-8">
+              {product.sections.map((section, idx) => (
+                  <div key={idx} className={`flex flex-col md:flex-row gap-8 items-center ${idx % 2 !== 0 ? 'md:flex-row-reverse' : ''}`}>
+                      <div className="flex-1 w-full">
+                          {section.image && (
+                              <div className="rounded-2xl overflow-hidden border border-zinc-800 shadow-lg aspect-video bg-zinc-900">
+                                  <img 
+                                    src={section.image} 
+                                    alt={section.title} 
+                                    className="w-full h-full object-cover hover:scale-105 transition-transform duration-700" 
+                                  />
+                              </div>
+                          )}
+                      </div>
+                      <div className="flex-1 space-y-4">
+                          <h3 className="text-2xl md:text-3xl font-bold text-white">{section.title}</h3>
+                          <p className="text-gray-400 text-lg leading-relaxed whitespace-pre-line">
+                              {section.content}
+                          </p>
+                      </div>
+                  </div>
+              ))}
+          </div>
+      )}
 
       <ReviewSection productId={product.id} />
     </div>

@@ -1,6 +1,8 @@
 
 
 
+
+
 import { Product, Order, User, ProductSource, Coupon, OrderStatusHistory, Review, Category, StoreSettings, Notification, ChatSession, ChatMessage, ChatContext } from '../types';
 
 // --- Simulated Database (LocalStorage) ---
@@ -52,7 +54,19 @@ const INITIAL_PRODUCTS: Product[] = [
     stock: 20,
     variants: [],
     condition: 'new',
-    launchDate: new Date().toISOString()
+    launchDate: new Date().toISOString(),
+    sections: [
+        {
+            title: "Detailed Sculpting",
+            content: "Every muscle and strand of hair is meticulously sculpted to capture Goku's Super Saiyan transformation in dynamic detail.",
+            image: "https://images.unsplash.com/photo-1608889175123-8ee362201f81?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            title: "Premium Collector's Box",
+            content: "Arrives in a beautiful window display box, perfect for keeping mint in box or displaying on your shelf.",
+            image: "https://images.unsplash.com/photo-1566576912321-d58ddd7a6088?q=80&w=800&auto=format&fit=crop"
+        }
+    ]
   },
   {
     id: 'ANIME-CARD-001',
@@ -177,7 +191,19 @@ const INITIAL_PRODUCTS: Product[] = [
     variants: [{ name: 'Color', options: ['Sunset Red', 'Rainbow', 'Sunlight'] }],
     shippingCost: 0,
     taxRate: 0.20,
-    condition: 'new'
+    condition: 'new',
+    sections: [
+        {
+            title: "Golden Hour, Every Hour",
+            content: "Transform your living space with the warm, calming glow of a sunset. Perfect for photography, relaxation, or setting a romantic mood.",
+            image: "https://images.unsplash.com/photo-1615529182904-14819c35db37?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            title: "App Controlled Colors",
+            content: "Choose from 16 million colors and various dynamic modes directly from your smartphone via Bluetooth.",
+            image: "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?q=80&w=800&auto=format&fit=crop"
+        }
+    ]
   },
   {
     id: '5',
@@ -343,7 +369,19 @@ const INITIAL_PRODUCTS: Product[] = [
     stock: 100,
     variants: [{ name: 'Color', options: ['White', 'Black'] }],
     shippingCost: 0,
-    condition: 'new'
+    condition: 'new',
+    sections: [
+        {
+            title: "Immersive Sound Experience",
+            content: "Equipped with 11mm dynamic drivers and advanced noise cancellation, these earbuds deliver deep bass and crystal clear highs.",
+            image: "https://images.unsplash.com/photo-1590658268037-6bf12165a8df?q=80&w=800&auto=format&fit=crop"
+        },
+        {
+            title: "All-Day Battery Life",
+            content: "Enjoy up to 8 hours of listening time on a single charge, and up to 24 hours with the charging case.",
+            image: "https://images.unsplash.com/photo-1605218457229-376bc89b4f91?q=80&w=800&auto=format&fit=crop"
+        }
+    ]
   },
   {
     id: '4',
