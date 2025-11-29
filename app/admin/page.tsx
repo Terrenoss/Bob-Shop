@@ -1,6 +1,3 @@
-
-
-
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -12,7 +9,7 @@ import { Button } from '../../components/ui/Button';
 import { ProductFormModal } from '../../components/ProductFormModal';
 import { OrderTimeline } from '../../components/OrderTimeline';
 import { FormattedText } from '../../components/FormattedText';
-import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban, MessageSquarePlus, History, CheckCircle, Ticket, Plus, Users, Shield, Clock, ExternalLink, Grid, Tag, KeyRound, Radio, Send, Star, Image as ImageIcon, MessageSquare, Settings, Upload, Eye, List, Key, ShieldCheck, User as UserIcon, Lock, ChevronRight, Layout, ArrowUp, ArrowDown, Paperclip, Check } from 'lucide-react';
+import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban, MessageSquarePlus, History, CheckCircle, Ticket, Plus, Users, Shield, Clock, ExternalLink, Grid, Tag, KeyRound, Radio, Send, Star, Image as ImageIcon, MessageSquare, Settings, Upload, Eye, List, Key, ShieldCheck, User as UserIcon, Lock, ChevronRight, Layout, ArrowUp, ArrowDown, Paperclip, Check, Euro } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 
@@ -284,6 +281,10 @@ export default function AdminPage() {
   };
   const handleCloseModal = () => { setIsProductModalOpen(false); setSearchParams({}); setEditingProduct(null); };
   const handleSaveSettings = async (e: React.FormEvent) => { e.preventDefault(); await updateSettings(settingsForm); };
+  
+  const saveCarouselSettings = async () => {
+        await updateSettings({ carouselInterval: settingsForm.carouselInterval });
+  };
 
   // Chat Handlers
   const handleSelectChatSession = async (session: ChatSession) => {
@@ -526,10 +527,10 @@ export default function AdminPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
                 <p className="text-xs font-bold text-emerald-400 uppercase tracking-wide">Total Revenue</p>
-                <p className="text-2xl md:text-3xl font-extrabold text-white mt-1">${stats.revenue.toFixed(2)}</p>
+                <p className="text-2xl md:text-3xl font-extrabold text-white mt-1">€{stats.revenue.toFixed(2)}</p>
             </div>
             <div className="p-3 bg-zinc-800 text-emerald-400 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
-                <DollarSign size={24} />
+                <Euro size={24} />
             </div>
           </div>
           <div className="text-xs font-medium text-emerald-400 flex items-center gap-1 bg-emerald-900/30 px-2 py-1 rounded w-fit">
@@ -558,7 +559,7 @@ export default function AdminPage() {
           <div className="flex justify-between items-start mb-4">
             <div>
                 <p className="text-xs font-bold text-purple-400 uppercase tracking-wide">Avg. Order Value</p>
-                <p className="text-2xl md:text-3xl font-extrabold text-white mt-1">${stats.avgOrderValue.toFixed(0)}</p>
+                <p className="text-2xl md:text-3xl font-extrabold text-white mt-1">€{stats.avgOrderValue.toFixed(0)}</p>
             </div>
             <div className="p-3 bg-zinc-800 text-purple-400 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
                 <BarChart3 size={24} />
@@ -644,7 +645,7 @@ export default function AdminPage() {
                                             <div className="text-xs text-gray-500">{order.shippingAddress.city}</div>
                                         </td>
                                         <td className="p-4 text-gray-400">{new Date(order.date).toLocaleDateString()}</td>
-                                        <td className="p-4 font-bold text-white">${order.total.toFixed(2)}</td>
+                                        <td className="p-4 font-bold text-white">€{order.total.toFixed(2)}</td>
                                         <td className="p-4">
                                             <span className={`px-2 py-1 rounded text-xs font-bold uppercase border ${
                                                 order.status === 'delivered' ? 'bg-green-900/20 text-green-400 border-green-900/50' : 
@@ -696,7 +697,7 @@ export default function AdminPage() {
                                         <span className="font-medium line-clamp-1 text-white">{p.title}</span>
                                     </td>
                                     <td className="p-4 text-gray-300">{p.stock}</td>
-                                    <td className="p-4 text-white">${p.price.toFixed(2)}</td>
+                                    <td className="p-4 text-white">€{p.price.toFixed(2)}</td>
                                     <td className="p-4 text-right">
                                         <div className="flex justify-end gap-2">
                                             <button onClick={() => handleEditProduct(p)} className="p-2 text-blue-400 hover:bg-blue-900/20 rounded transition-colors"><Edit2 size={16}/></button>
@@ -713,13 +714,31 @@ export default function AdminPage() {
 
         {/* CAROUSEL TAB */}
         {activeTab === 'carousel' && (
-            <div className="p-4">
-                <div className="flex justify-between items-center mb-4">
+            <div className="p-4 space-y-6">
+                
+                {/* Global Settings */}
+                <div className="bg-zinc-950 border border-zinc-800 rounded-xl p-4 flex flex-col sm:flex-row gap-4 items-end">
+                    <div className="flex-grow">
+                        <label className="block text-xs font-bold mb-1 text-gray-400 uppercase">Auto-Play Interval (Seconds)</label>
+                        <input 
+                            type="number" step="1" min="0" 
+                            value={settingsForm.carouselInterval / 1000} 
+                            onChange={e => setSettingsForm({...settingsForm, carouselInterval: Number(e.target.value) * 1000})} 
+                            className="w-full p-2 bg-zinc-900 border border-zinc-800 rounded-lg text-white focus:border-blue-600 outline-none text-sm"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Set to 0 to disable auto-play.</p>
+                    </div>
+                    <Button onClick={saveCarouselSettings} size="sm">Save Config</Button>
+                </div>
+
+                {/* Slides List Header */}
+                <div className="flex justify-between items-center">
                     <div className="text-gray-400 text-sm">
                         Manage slides displayed on the homepage.
                     </div>
                     <Button onClick={() => handleOpenSlideModal()}><Plus size={16} className="mr-2"/> Add Slide</Button>
                 </div>
+                
                 <div className="space-y-4">
                     {carouselSlides.map((slide) => (
                         <div key={slide.id} className="border border-zinc-800 bg-zinc-950 rounded-xl p-4 flex gap-4 items-center">
@@ -782,7 +801,7 @@ export default function AdminPage() {
                         <div>
                             <h4 className="font-bold line-clamp-2 text-white">{p.rawTitle}</h4>
                             <p className="text-sm text-gray-500 mt-1">{p.supplierName}</p>
-                            <p className="font-bold text-lg mt-2 text-green-400">${p.wholesalePrice.toFixed(2)}</p>
+                            <p className="font-bold text-lg mt-2 text-green-400">€{p.wholesalePrice.toFixed(2)}</p>
                         </div>
                         <Button onClick={() => handleImport(p)} isLoading={processingId === p.id} disabled={!!processingId}>Import Product</Button>
                     </div>
@@ -797,7 +816,7 @@ export default function AdminPage() {
                 <div className="space-y-2">
                     {coupons.map(c => (
                         <div key={c.id} className="p-4 border border-zinc-800 bg-zinc-950 rounded-lg flex justify-between items-center">
-                            <div className="text-white font-mono font-bold text-lg">{c.code} <span className="text-sm font-sans font-normal text-gray-400 ml-2">({c.value}{c.type === 'percent' ? '%' : '$'})</span></div>
+                            <div className="text-white font-mono font-bold text-lg">{c.code} <span className="text-sm font-sans font-normal text-gray-400 ml-2">({c.value}{c.type === 'percent' ? '%' : '€'})</span></div>
                             <div className="flex gap-2">
                                 <button onClick={() => handleOpenCouponModal(c)} className="text-blue-400 hover:text-blue-300">Edit</button>
                                 <button onClick={() => handleDeleteCoupon(c.id)} className="text-red-400 hover:text-red-300">Delete</button>
@@ -851,17 +870,12 @@ export default function AdminPage() {
             <div className="p-8 max-w-lg">
                 <form onSubmit={handleSaveSettings} className="space-y-6">
                     <div>
-                        <label className="block text-sm font-bold mb-2 text-gray-300">Shipping Cost ($)</label>
+                        <label className="block text-sm font-bold mb-2 text-gray-300">Shipping Cost (€)</label>
                         <input type="number" step="0.01" value={settingsForm.shippingCost} onChange={e => setSettingsForm({...settingsForm, shippingCost: Number(e.target.value)})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:border-blue-600 outline-none"/>
                     </div>
                     <div>
                         <label className="block text-sm font-bold mb-2 text-gray-300">Tax Rate (Decimal, e.g. 0.20)</label>
                         <input type="number" step="0.01" value={settingsForm.taxRate} onChange={e => setSettingsForm({...settingsForm, taxRate: Number(e.target.value)})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:border-blue-600 outline-none"/>
-                    </div>
-                    <div>
-                        <label className="block text-sm font-bold mb-2 text-gray-300">Carousel Auto-Play Interval (Seconds)</label>
-                        <input type="number" step="1" min="0" value={settingsForm.carouselInterval / 1000} onChange={e => setSettingsForm({...settingsForm, carouselInterval: Number(e.target.value) * 1000})} className="w-full p-3 bg-zinc-950 border border-zinc-800 rounded-lg text-white focus:border-blue-600 outline-none"/>
-                        <p className="text-xs text-gray-500 mt-1">Set to 0 to disable auto-play.</p>
                     </div>
                     <Button type="submit">Save Settings</Button>
                 </form>
@@ -1057,7 +1071,7 @@ export default function AdminPage() {
                                                 <div className="flex-1">
                                                     <div className="flex justify-between">
                                                         <h4 className="font-bold text-white line-clamp-1">{item.title}</h4>
-                                                        <span className="font-bold text-gray-300 text-sm">${item.price} x {item.quantity}</span>
+                                                        <span className="font-bold text-gray-300 text-sm">€{item.price} x {item.quantity}</span>
                                                     </div>
                                                     <div className="text-xs text-gray-500 mt-1">
                                                         {item.selectedVariants && Object.values(item.selectedVariants).join(', ')}
@@ -1184,9 +1198,9 @@ export default function AdminPage() {
                             <div className="bg-zinc-900 rounded-xl shadow-sm border border-zinc-800 p-6">
                                 <h3 className="font-bold text-gray-200 mb-3 flex items-center gap-2"><DollarSign size={16}/> Payment</h3>
                                 <div className="space-y-2 text-sm">
-                                    <div className="flex justify-between"><span className="text-gray-500">Subtotal</span> <span className="text-gray-300">${selectedOrder.subtotal?.toFixed(2)}</span></div>
-                                    <div className="flex justify-between"><span className="text-gray-500">Shipping</span> <span className="text-gray-300">${selectedOrder.shippingCost?.toFixed(2)}</span></div>
-                                    <div className="flex justify-between font-bold text-lg pt-2 border-t border-zinc-800"><span className="text-white">Total</span> <span className="text-white">${selectedOrder.total.toFixed(2)}</span></div>
+                                    <div className="flex justify-between"><span className="text-gray-500">Subtotal</span> <span className="text-gray-300">€{selectedOrder.subtotal?.toFixed(2)}</span></div>
+                                    <div className="flex justify-between"><span className="text-gray-500">Shipping</span> <span className="text-gray-300">€{selectedOrder.shippingCost?.toFixed(2)}</span></div>
+                                    <div className="flex justify-between font-bold text-lg pt-2 border-t border-zinc-800"><span className="text-white">Total</span> <span className="text-white">€{selectedOrder.total.toFixed(2)}</span></div>
                                     <div className="mt-2 text-xs bg-green-900/20 text-green-400 px-2 py-1 rounded text-center font-medium border border-green-900/30">
                                         Paid via {selectedOrder.paymentMethod || 'Credit Card'}
                                     </div>
@@ -1357,7 +1371,7 @@ export default function AdminPage() {
                               <label className="text-xs font-bold text-gray-500 uppercase">Type</label>
                               <select className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingCoupon.type} onChange={e => setEditingCoupon({...editingCoupon, type: e.target.value as any})}>
                                   <option value="percent">Percentage (%)</option>
-                                  <option value="fixed">Fixed Amount ($)</option>
+                                  <option value="fixed">Fixed Amount (€)</option>
                               </select>
                           </div>
                           <div>
@@ -1366,7 +1380,7 @@ export default function AdminPage() {
                           </div>
                       </div>
                       <div>
-                          <label className="text-xs font-bold text-gray-500 uppercase">Minimum Order ($)</label>
+                          <label className="text-xs font-bold text-gray-500 uppercase">Minimum Order (€)</label>
                           <input type="number" className="w-full bg-zinc-950 border border-zinc-800 rounded-lg p-2 text-white focus:border-blue-600 outline-none" value={editingCoupon.minOrder} onChange={e => setEditingCoupon({...editingCoupon, minOrder: Number(e.target.value)})} />
                       </div>
                       <div className="flex justify-end gap-3 pt-4">

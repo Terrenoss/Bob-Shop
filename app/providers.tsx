@@ -1,7 +1,3 @@
-
-
-
-
 'use client';
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
@@ -99,7 +95,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [chatContext, setChatContext] = useState<ChatContext | null>(null);
 
-  const [currency, setCurrency] = useState<'USD' | 'EUR'>('USD');
+  const [currency, setCurrency] = useState<'USD' | 'EUR'>('EUR');
 
   // Initial Data Fetch
   useEffect(() => {
@@ -139,8 +135,9 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const formatPrice = (amount: number) => {
-    const rate = currency === 'EUR' ? 0.92 : 1;
-    const symbol = currency === 'EUR' ? '€' : '$';
+    // Base currency is now EUR (rate 1). USD is secondary (rate 1.09)
+    const rate = currency === 'USD' ? 1.09 : 1;
+    const symbol = currency === 'USD' ? '$' : '€';
     return `${symbol}${(amount * rate).toFixed(2)}`;
   };
 

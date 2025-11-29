@@ -82,8 +82,8 @@ export default function CheckoutPage() {
 
   const total = Math.max(0, subtotal + shipping + estimatedTax - discountAmount);
 
-  // Convert for PayPal
-  const exchangeRate = currency === 'EUR' ? 0.92 : 1;
+  // Convert for PayPal (Base EUR)
+  const exchangeRate = currency === 'USD' ? 1.09 : 1;
   const totalInCurrency = (total * exchangeRate).toFixed(2);
 
   const handleApplyCoupon = async () => {

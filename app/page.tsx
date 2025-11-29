@@ -1,6 +1,3 @@
-
-
-
 'use client';
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
@@ -129,9 +126,9 @@ const CATEGORY_TREE: MegaCategory[] = [
     ] 
   },
   {
-    id: 'Food',
-    label: 'Food & Drink',
-    icon: Utensils,
+    id: 'Food', 
+    label: 'Food & Drink', 
+    icon: Utensils, 
     subcategories: [
       { name: 'Snacks', query: 'snack' },
       { name: 'Beverages', query: 'drink' },
@@ -422,15 +419,13 @@ export default function HomePage() {
             })}
             
             {/* Controls Layer */}
-            <div className="absolute inset-0 pointer-events-none z-30">
-                 <div className="container mx-auto h-full flex justify-between items-center px-4">
-                     <button onClick={prevSlide} className="pointer-events-auto p-3 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md transition-all hover:scale-110 border border-white/10 hover:border-white/30 group">
-                         <ChevronLeft size={28} className="group-hover:-translate-x-0.5 transition-transform"/>
-                     </button>
-                     <button onClick={nextSlide} className="pointer-events-auto p-3 rounded-full bg-black/20 hover:bg-black/40 text-white backdrop-blur-md transition-all hover:scale-110 border border-white/10 hover:border-white/30 group">
-                         <ChevronRight size={28} className="group-hover:translate-x-0.5 transition-transform"/>
-                     </button>
-                 </div>
+            <div className="absolute bottom-4 right-4 md:bottom-8 md:right-8 z-30 flex gap-2">
+                 <button onClick={prevSlide} className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all hover:scale-105 border border-white/10 hover:border-white/30">
+                     <ChevronLeft size={20} />
+                 </button>
+                 <button onClick={nextSlide} className="p-2 rounded-full bg-black/40 hover:bg-black/60 text-white backdrop-blur-md transition-all hover:scale-105 border border-white/10 hover:border-white/30">
+                     <ChevronRight size={20} />
+                 </button>
             </div>
             
             {/* Carousel Indicators */}
