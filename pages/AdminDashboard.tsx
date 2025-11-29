@@ -1,14 +1,12 @@
-
-
 import React, { useState, useEffect } from 'react';
-import { useApp } from '../App';
+import { useApp } from '../app/providers';
 import { SupplierProduct, ProductSource, Order, Product } from '../types';
 import { optimizeProductListing } from '../services/geminiService';
 import { productsService, ordersService } from '../services/mockNestService';
 import { Button } from '../components/ui/Button';
 import { ProductFormModal } from '../components/ProductFormModal';
 import { OrderTimeline } from '../components/OrderTimeline';
-import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban } from 'lucide-react';
+import { Download, RefreshCw, TrendingUp, Globe, DollarSign, Package, ClipboardList, Trash2, Edit2, CheckSquare, Truck, AlertTriangle, X, Search, Filter, Calendar, MapPin, Save, Printer, BarChart3, ArrowUpRight, RotateCcw, Mail, FileText, Ban, MessageSquarePlus, History, CheckCircle } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useSearchParams } from 'react-router-dom';
 
@@ -59,6 +57,7 @@ export const AdminDashboard: React.FC = () => {
   const [orderFilter, setOrderFilter] = useState<string>('all');
   const [orderSearch, setOrderSearch] = useState<string>('');
   const [isOrderDrawerOpen, setIsOrderDrawerOpen] = useState(false);
+  const [newNoteText, setNewNoteText] = useState('');
   
   // Stats
   const [stats, setStats] = useState({
@@ -170,6 +169,7 @@ export const AdminDashboard: React.FC = () => {
 
   const openOrderDrawer = (order: Order) => {
       setSelectedOrder(order);
+      setNewNoteText('');
       setIsOrderDrawerOpen(true);
   };
 
@@ -186,6 +186,19 @@ export const AdminDashboard: React.FC = () => {
       setSelectedOrder(prev => prev ? ({ ...prev, ...updatedFields }) : null);
       await fetchData();
       toast.success('Order details updated');
+  };
+
+  const handleAddNoteToHistory = async () => {
+      if (!selectedOrder || !newNoteText.trim()) return;
+      
+      await ordersService.addNoteToHistory(selectedOrder.id, newNoteText);
+      const updated = await ordersService.findOne(selectedOrder.id);
+      if (updated) {
+          setSelectedOrder(updated);
+      }
+      setNewNoteText('');
+      await fetchData();
+      toast.success('Note added to timeline');
   };
 
   const handleRefund = async () => {
@@ -595,10 +608,11 @@ export const AdminDashboard: React.FC = () => {
                                         <Truck size={20} className="mb-2 text-gray-400" /> Mark Shipped
                                     </button>
                                     <button 
-                                        onClick={handleResendInvoice}
-                                        className="flex flex-col items-center justify-center p-3 rounded-lg border border-gray-100 hover:bg-blue-50 hover:border-blue-200 hover:text-blue-700 transition-all text-sm font-medium"
+                                        onClick={() => handleSaveOrderChanges({ status: 'delivered' })}
+                                        disabled={selectedOrder.status === 'cancelled' || selectedOrder.status === 'delivered'}
+                                        className="flex flex-col items-center justify-center p-3 rounded-lg border border-gray-100 hover:bg-green-50 hover:border-green-200 hover:text-green-700 transition-all text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                                     >
-                                        <Mail size={20} className="mb-2 text-gray-400" /> Email Invoice
+                                        <CheckCircle size={20} className="mb-2 text-gray-400" /> Mark Delivered
                                     </button>
                                     <button 
                                         onClick={handleRefund}
@@ -608,12 +622,54 @@ export const AdminDashboard: React.FC = () => {
                                         <Ban size={20} className="mb-2 text-gray-400" /> Refund & Cancel
                                     </button>
                                 </div>
+                                <div className="mt-3">
+                                   <button 
+                                        onClick={handleResendInvoice}
+                                        className="w-full flex items-center justify-center p-2 rounded-lg border border-gray-100 hover:bg-gray-50 text-sm font-medium text-gray-600 transition-all"
+                                    >
+                                        <Mail size={16} className="mr-2" /> Resend Email Invoice
+                                    </button>
+                                </div>
                             </div>
 
                             {/* Visual Timeline (Integrated) */}
                             <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
                                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4">Timeline History</h3>
                                 <OrderTimeline order={selectedOrder} />
+                            </div>
+
+                            {/* History Log Section */}
+                            <div className="bg-white p-5 rounded-xl border border-gray-200 shadow-sm">
+                                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-wide mb-4 flex items-center gap-2">
+                                    <History size={14} /> Full History Log
+                                </h3>
+                                
+                                <div className="space-y-4 mb-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                    {selectedOrder.statusHistory?.slice().reverse().map((entry, idx) => (
+                                        <div key={idx} className="flex gap-3 text-sm border-b border-gray-50 pb-3 last:border-0 last:pb-0">
+                                            <div className="w-24 flex-shrink-0 text-gray-500 text-xs mt-0.5">
+                                                {new Date(entry.date).toLocaleString(undefined, { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}
+                                            </div>
+                                            <div className="flex-grow">
+                                                <div className="font-bold text-gray-900 capitalize text-xs mb-0.5">{entry.status}</div>
+                                                <div className="text-gray-600">{entry.note || '-'}</div>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+
+                                <div className="flex gap-2">
+                                    <input 
+                                        value={newNoteText}
+                                        onChange={(e) => setNewNoteText(e.target.value)}
+                                        placeholder="Add a timeline note..."
+                                        className="flex-grow p-2 border border-gray-200 rounded-lg text-sm focus:border-blue-500 outline-none"
+                                        onKeyDown={(e) => e.key === 'Enter' && handleAddNoteToHistory()}
+                                    />
+                                    <Button size="sm" onClick={handleAddNoteToHistory} disabled={!newNoteText.trim()}>
+                                        <MessageSquarePlus size={16} />
+                                    </Button>
+                                </div>
                             </div>
 
                             {/* Fulfillment Section */}

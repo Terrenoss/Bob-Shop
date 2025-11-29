@@ -1,14 +1,38 @@
 <!DOCTYPE html>
-<html lang="fr">
+<html lang="fr" class="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Bob-Shop | Dropshipping Elite</title>
+    <title>Bob-Shop | Mode, Maison & High-Tech</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
       @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
       body {
         font-family: 'Inter', sans-serif;
+      }
+      /* Custom Scrollbar for legal pages */
+      .legal-content h2 {
+        font-size: 1.5rem;
+        font-weight: 700;
+        margin-top: 2rem;
+        margin-bottom: 1rem;
+        color: #fff;
+      }
+      .legal-content h3 {
+        font-size: 1.25rem;
+        font-weight: 600;
+        margin-top: 1.5rem;
+        margin-bottom: 0.75rem;
+        color: #e4e4e7;
+      }
+      .legal-content p, .legal-content ul {
+        margin-bottom: 1rem;
+        color: #a1a1aa;
+        line-height: 1.7;
+      }
+      .legal-content ul {
+        list-style-type: disc;
+        padding-left: 1.5rem;
       }
     </style>
   <script type="importmap">
@@ -20,12 +44,14 @@
     "react": "https://aistudiocdn.com/react@^19.2.0",
     "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
     "lucide-react": "https://aistudiocdn.com/lucide-react@^0.554.0",
-    "react-hot-toast": "https://aistudiocdn.com/react-hot-toast@^2.6.0"
+    "react-hot-toast": "https://aistudiocdn.com/react-hot-toast@^2.6.0",
+    "@paypal/react-paypal-js": "https://aistudiocdn.com/@paypal/react-paypal-js@^8.1.3",
+    "next/": "https://aistudiocdn.com/next@^16.0.5/"
   }
 }
 </script>
 </head>
-  <body class="bg-gray-50 text-gray-900 antialiased">
+  <body class="bg-black text-gray-100 antialiased selection:bg-purple-500 selection:text-white">
     <div id="root"></div>
   </body>
 </html>

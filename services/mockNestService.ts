@@ -1,5 +1,3 @@
-
-
 import { Product, Order, User, ProductSource, Coupon, OrderStatusHistory } from '../types';
 
 // --- Simulated Database (LocalStorage) ---
@@ -59,9 +57,9 @@ const INITIAL_USERS: User[] = [
 ];
 
 const MOCK_COUPONS: Coupon[] = [
-  { code: 'WELCOME10', type: 'percent', value: 10, minOrder: 0 },
-  { code: 'SAVE20', type: 'fixed', value: 20, minOrder: 100 },
-  { code: 'BOBSHOP', type: 'percent', value: 15, minOrder: 50 },
+  { id: 'cpn-1', code: 'WELCOME10', type: 'percent', value: 10, minOrder: 0 },
+  { id: 'cpn-2', code: 'SAVE20', type: 'fixed', value: 20, minOrder: 100 },
+  { id: 'cpn-3', code: 'BOBSHOP', type: 'percent', value: 15, minOrder: 50 },
 ];
 
 // --- NestJS Service Simulation ---
@@ -195,6 +193,30 @@ class OrdersService {
     return updatedOrder;
   }
 
+  async addNoteToHistory(orderId: string, note: string): Promise<Order | undefined> {
+    const orders = await this.findAll();
+    const index = orders.findIndex(o => o.id === orderId);
+    if (index === -1) return undefined;
+
+    const currentOrder = orders[index];
+    
+    // Ensure statusHistory exists
+    if (!currentOrder.statusHistory) {
+        currentOrder.statusHistory = [];
+    }
+
+    // Push new history entry with current status
+    currentOrder.statusHistory.push({
+        status: currentOrder.status,
+        date: new Date().toISOString(),
+        note: note
+    });
+
+    orders[index] = currentOrder;
+    localStorage.setItem(DB_KEYS.ORDERS, JSON.stringify(orders));
+    return currentOrder;
+  }
+
   async refund(orderId: string): Promise<Order | undefined> {
       const orders = await this.findAll();
       const index = orders.findIndex(o => o.id === orderId);
@@ -230,7 +252,8 @@ class OrdersService {
 
 class CouponsService {
     async validate(code: string): Promise<Coupon | null> {
-        const coupon = MOCK_COUPONS.find(c => c.code.toUpperCase() === code.toUpperCase());
+        // Case insensitive check
+        const coupon = MOCK_COUPONS.find(c => c.code.toUpperCase() === code.trim().toUpperCase());
         return coupon || null;
     }
 }

@@ -22,7 +22,7 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({ order }) => {
 
   if (isCancelled) {
       return (
-          <div className="bg-red-50 p-4 rounded-xl border border-red-200 flex items-center justify-center gap-3 text-red-700 w-full">
+          <div className="bg-red-900/20 p-4 rounded-xl border border-red-900/50 flex items-center justify-center gap-3 text-red-400 w-full">
               <XCircle size={24} />
               <div className="flex flex-col">
                   <span className="font-bold">Order Cancelled</span>
@@ -40,11 +40,11 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({ order }) => {
     <div className="w-full py-4 px-2">
       <div className="relative flex items-center justify-between">
         {/* Background Line */}
-        <div className="absolute left-0 top-5 w-full h-1 bg-gray-100 -z-10 rounded-full"></div>
+        <div className="absolute left-0 top-5 w-full h-1 bg-zinc-800 -z-10 rounded-full"></div>
         
         {/* Active Progress Line */}
         <div 
-            className="absolute left-0 top-5 h-1 bg-green-500 -z-10 rounded-full transition-all duration-700 ease-out"
+            className="absolute left-0 top-5 h-1 bg-gradient-to-r from-green-600 to-green-500 -z-10 rounded-full transition-all duration-700 ease-out"
             style={{ width: `${Math.max(0, (currentStatusIndex / (steps.length - 1)) * 100)}%` }}
         ></div>
 
@@ -68,32 +68,32 @@ export const OrderTimeline: React.FC<OrderTimelineProps> = ({ order }) => {
           return (
             <div key={step.key} className="flex flex-col items-center gap-2 relative group cursor-default">
               <div 
-                className={`w-10 h-10 rounded-full flex items-center justify-center border-4 bg-white transition-all duration-300 z-10 ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center border-4 transition-all duration-300 z-10 ${
                   isActive 
-                    ? 'border-green-500 text-green-600 shadow-sm' 
-                    : 'border-gray-200 text-gray-300'
-                } ${isCurrent ? 'scale-110 ring-4 ring-green-50' : ''}`}
+                    ? 'bg-zinc-900 border-green-500 text-green-500 shadow-[0_0_10px_rgba(34,197,94,0.3)]' 
+                    : 'bg-zinc-900 border-zinc-700 text-zinc-600'
+                } ${isCurrent ? 'scale-110 ring-4 ring-green-900/30' : ''}`}
               >
                 <Icon size={16} strokeWidth={isActive ? 2.5 : 2} />
               </div>
               
               <div className="text-center flex flex-col items-center min-w-[80px]">
-                  <span className={`text-xs font-bold uppercase tracking-wide mt-2 transition-colors ${isActive ? 'text-gray-900' : 'text-gray-400'}`}>
+                  <span className={`text-xs font-bold uppercase tracking-wide mt-2 transition-colors ${isActive ? 'text-white' : 'text-gray-500'}`}>
                     {step.label}
                   </span>
                   
                   {historyEntry ? (
                       <div className="flex flex-col items-center animate-in fade-in slide-in-from-top-1 mt-1">
-                          <span className="text-[10px] text-gray-600 font-medium leading-tight">
+                          <span className="text-[10px] text-gray-400 font-medium leading-tight">
                               {dateStr}
                           </span>
-                          <span className="text-[10px] text-gray-400">
+                          <span className="text-[10px] text-gray-500">
                               {timeStr}
                           </span>
                       </div>
                   ) : isActive && !historyEntry ? (
                       // Fallback for older orders or skipped steps
-                      <span className="text-[10px] text-gray-400 mt-1">Done</span>
+                      <span className="text-[10px] text-gray-500 mt-1">Done</span>
                   ) : (
                       <span className="text-[10px] text-transparent mt-1 select-none">Pending</span>
                   )}

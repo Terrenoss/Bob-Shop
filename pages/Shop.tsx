@@ -1,8 +1,6 @@
-
-
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { useApp } from '../App';
+import { useApp } from '../app/providers';
 import { ProductCard } from '../components/ProductCard';
 import { generateMarketingBlurb } from '../services/geminiService';
 import { Sparkles, Filter, Tag, X, ArrowRight, Zap } from 'lucide-react';

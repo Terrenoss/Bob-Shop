@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useApp } from '../App';
+import { useApp } from '../app/providers';
 import { Product } from '../types';
 import { Button } from '../components/ui/Button';
 import { ShoppingBag, ArrowLeft, Truck, ShieldCheck, Star, AlertCircle } from 'lucide-react';

@@ -1,22 +1,18 @@
-
 import React, { useState } from 'react';
-import { useApp } from '../App';
+import { useApp } from '../app/providers';
 import { Button } from '../components/ui/Button';
 import { CheckCircle, CreditCard, Shield, Truck, Ticket, Info } from 'lucide-react';
 import { toast } from 'react-hot-toast';
 import { useNavigate } from 'react-router-dom';
-import { couponsService } from '../services/mockNestService';
-import { Coupon } from '../types';
 
 export const Checkout: React.FC = () => {
-  const { cart, user, placeOrder, setIsAuthModalOpen } = useApp();
+  const { cart, user, placeOrder, setIsAuthModalOpen, coupon, applyCoupon, removeCoupon } = useApp();
   const [step, setStep] = useState<'shipping' | 'payment' | 'success'>('shipping');
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // Coupon State
-  const [couponCode, setCouponCode] = useState('');
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  // Local coupon input state (global state is in AppContext)
+  const [couponInput, setCouponInput] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   // Form State
@@ -34,13 +30,13 @@ export const Checkout: React.FC = () => {
   const taxRate = 0.08;
   const estimatedTax = subtotal * taxRate;
   
-  // Calculate Discount
+  // Calculate Discount using global coupon
   let discountAmount = 0;
-  if (appliedCoupon) {
-      if (appliedCoupon.type === 'percent') {
-          discountAmount = (subtotal * appliedCoupon.value) / 100;
+  if (coupon) {
+      if (coupon.type === 'percent') {
+          discountAmount = (subtotal * coupon.value) / 100;
       } else {
-          discountAmount = appliedCoupon.value;
+          discountAmount = coupon.value;
       }
   }
   // Ensure discount doesn't exceed subtotal
@@ -49,25 +45,11 @@ export const Checkout: React.FC = () => {
   const total = subtotal + shipping + estimatedTax - discountAmount;
 
   const handleApplyCoupon = async () => {
-      if (!couponCode) return;
+      if (!couponInput) return;
       setIsValidatingCoupon(true);
-      const coupon = await couponsService.validate(couponCode);
+      await applyCoupon(couponInput);
       setIsValidatingCoupon(false);
-
-      if (!coupon) {
-          toast.error("Invalid coupon code");
-          setAppliedCoupon(null);
-          return;
-      }
-
-      if (coupon.minOrder && subtotal < coupon.minOrder) {
-          toast.error(`Minimum order of $${coupon.minOrder} required`);
-          setAppliedCoupon(null);
-          return;
-      }
-
-      setAppliedCoupon(coupon);
-      toast.success("Coupon applied!");
+      setCouponInput('');
   };
 
   const handlePayment = async () => {
@@ -96,7 +78,7 @@ export const Checkout: React.FC = () => {
         shippingCost: shipping,
         tax: estimatedTax,
         discount: discountAmount,
-        couponCode: appliedCoupon?.code,
+        couponCode: coupon?.code,
         status: 'pending',
         shippingAddress: {
             name: `${formData.firstName} ${formData.lastName}`,
@@ -271,30 +253,35 @@ export const Checkout: React.FC = () => {
             
             {/* Coupon Code Input */}
             <div className="mb-6">
-                <div className="flex gap-2">
+                {!coupon ? (
+                  <div className="flex gap-2">
                     <input 
                         type="text" 
                         placeholder="Promo Code (e.g. WELCOME10)" 
                         className="flex-grow p-2 text-sm border border-gray-200 rounded-lg outline-none focus:border-blue-500 uppercase"
-                        value={couponCode}
-                        onChange={(e) => setCouponCode(e.target.value)}
+                        value={couponInput}
+                        onChange={(e) => setCouponInput(e.target.value)}
+                        onKeyDown={(e) => e.key === 'Enter' && handleApplyCoupon()}
                     />
                     <Button 
                         size="sm" 
                         variant="secondary" 
                         onClick={handleApplyCoupon}
-                        disabled={isValidatingCoupon || !couponCode}
+                        disabled={isValidatingCoupon || !couponInput}
                     >
                         Apply
                     </Button>
-                </div>
-                {appliedCoupon && (
-                    <div className="flex items-center justify-between mt-2 text-xs text-green-600 bg-green-50 p-2 rounded">
-                        <div className="flex items-center gap-1">
-                            <Ticket size={12} />
-                            <span>Coupon applied: {appliedCoupon.code}</span>
+                  </div>
+                ) : (
+                    <div className="flex items-center justify-between mt-2 text-xs text-green-600 bg-green-50 p-2.5 rounded-lg border border-green-100">
+                        <div className="flex items-center gap-2">
+                            <Ticket size={14} />
+                            <span className="font-bold">{coupon.code}</span>
+                            <span className="opacity-75">
+                                ({coupon.type === 'percent' ? `-${coupon.value}%` : `-$${coupon.value}`})
+                            </span>
                         </div>
-                        <button onClick={() => setAppliedCoupon(null)} className="hover:text-green-800 font-bold">✕</button>
+                        <button onClick={removeCoupon} className="hover:text-green-800 font-bold p-1">✕</button>
                     </div>
                 )}
             </div>
@@ -312,7 +299,7 @@ export const Checkout: React.FC = () => {
                     <span className="flex items-center gap-1">Estimated Tax <Info size={12}/></span>
                     <span>${estimatedTax.toFixed(2)}</span>
                 </div>
-                {appliedCoupon && (
+                {coupon && (
                     <div className="flex justify-between text-green-600 font-medium">
                         <span>Discount</span>
                         <span>-${discountAmount.toFixed(2)}</span>

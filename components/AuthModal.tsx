@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useApp } from '../App';
+import { useApp } from '../app/providers';
 import { X, User, Lock, Mail } from 'lucide-react';
 import { Button } from './ui/Button';
 
@@ -40,31 +40,31 @@ export const AuthModal: React.FC = () => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black/60 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
-      <div className="bg-white rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
-        <div className="p-6 border-b border-gray-100 flex justify-between items-center">
-          <h3 className="text-lg font-bold text-gray-900">
+    <div className="fixed inset-0 bg-black/80 z-[100] flex items-center justify-center p-4 backdrop-blur-sm">
+      <div className="bg-zinc-900 border border-zinc-800 rounded-2xl w-full max-w-md overflow-hidden shadow-2xl animate-in fade-in zoom-in duration-200">
+        <div className="p-6 border-b border-zinc-800 flex justify-between items-center">
+          <h3 className="text-lg font-bold text-white">
               {mode === 'login' ? 'Welcome Back' : 'Create Account'}
           </h3>
           <button 
             onClick={() => setIsAuthModalOpen(false)}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-gray-500 hover:text-white"
           >
             <X size={20} />
           </button>
         </div>
 
         <div className="p-6 space-y-6">
-          <div className="flex bg-gray-100 p-1 rounded-lg mb-6">
+          <div className="flex bg-zinc-950 p-1 rounded-lg mb-6 border border-zinc-800">
               <button 
                 onClick={() => setMode('login')}
-                className={`flex-1 text-sm font-medium py-2 rounded-md transition-all ${mode === 'login' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 text-sm font-medium py-2 rounded-md transition-all ${mode === 'login' ? 'bg-zinc-800 shadow-sm text-white' : 'text-gray-500 hover:text-gray-300'}`}
               >
                   Login
               </button>
               <button 
                 onClick={() => setMode('signup')}
-                className={`flex-1 text-sm font-medium py-2 rounded-md transition-all ${mode === 'signup' ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'}`}
+                className={`flex-1 text-sm font-medium py-2 rounded-md transition-all ${mode === 'signup' ? 'bg-zinc-800 shadow-sm text-white' : 'text-gray-500 hover:text-gray-300'}`}
               >
                   Sign Up
               </button>
@@ -73,13 +73,13 @@ export const AuthModal: React.FC = () => {
           <form onSubmit={handleSubmit} className="space-y-4">
               {mode === 'signup' && (
                 <div className="space-y-1">
-                    <label className="text-sm font-medium text-gray-700">Full Name</label>
+                    <label className="text-sm font-medium text-gray-400">Full Name</label>
                     <div className="relative">
-                        <User className="absolute left-3 top-3 text-gray-400" size={18} />
+                        <User className="absolute left-3 top-3 text-gray-500" size={18} />
                         <input 
                             required 
                             type="text" 
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
+                            className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none text-white placeholder-zinc-700" 
                             placeholder="John Doe"
                             value={formData.name}
                             onChange={e => setFormData({...formData, name: e.target.value})}
@@ -89,13 +89,13 @@ export const AuthModal: React.FC = () => {
               )}
 
               <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Email Address</label>
+                  <label className="text-sm font-medium text-gray-400">Email Address</label>
                   <div className="relative">
-                      <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+                      <Mail className="absolute left-3 top-3 text-gray-500" size={18} />
                       <input 
                         required 
                         type="email" 
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
+                        className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none text-white placeholder-zinc-700" 
                         placeholder="you@example.com"
                         value={formData.email}
                         onChange={e => setFormData({...formData, email: e.target.value})}
@@ -104,13 +104,13 @@ export const AuthModal: React.FC = () => {
               </div>
 
               <div className="space-y-1">
-                  <label className="text-sm font-medium text-gray-700">Password</label>
+                  <label className="text-sm font-medium text-gray-400">Password</label>
                   <div className="relative">
-                      <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+                      <Lock className="absolute left-3 top-3 text-gray-500" size={18} />
                       <input 
                         required 
                         type="password" 
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 outline-none" 
+                        className="w-full pl-10 pr-4 py-2.5 bg-zinc-950 border border-zinc-800 rounded-xl focus:ring-2 focus:ring-purple-600 focus:border-purple-600 outline-none text-white placeholder-zinc-700" 
                         placeholder="••••••••"
                         value={formData.password}
                         onChange={e => setFormData({...formData, password: e.target.value})}
@@ -125,10 +125,10 @@ export const AuthModal: React.FC = () => {
 
           <div className="relative py-4">
               <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200"></div>
+                  <div className="w-full border-t border-zinc-800"></div>
               </div>
               <div className="relative flex justify-center text-sm">
-                  <span className="px-2 bg-white text-gray-500">Quick Demo Access</span>
+                  <span className="px-2 bg-zinc-900 text-gray-500">Quick Demo Access</span>
               </div>
           </div>
 
@@ -136,14 +136,14 @@ export const AuthModal: React.FC = () => {
               <button 
                 type="button"
                 onClick={() => fillDemo('customer')}
-                className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 hover:border-gray-300 transition-colors"
+                className="px-4 py-2 border border-zinc-800 rounded-lg text-sm font-medium text-gray-400 hover:bg-zinc-800 hover:text-white transition-colors"
               >
                   Demo Customer
               </button>
               <button 
                 type="button"
                 onClick={() => fillDemo('admin')}
-                className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-medium text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-colors"
+                className="px-4 py-2 border border-zinc-800 rounded-lg text-sm font-medium text-amber-500 hover:bg-amber-950/20 hover:border-amber-900 transition-colors"
               >
                   Demo Admin
               </button>

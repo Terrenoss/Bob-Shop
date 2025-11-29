@@ -1,6 +1,5 @@
-
 import React, { useEffect, useState } from 'react';
-import { useApp } from '../App';
+import { useApp } from '../app/providers';
 import { Order } from '../types';
 import { ordersService } from '../services/mockNestService';
 import { Package, Truck, FileText, MapPin, CreditCard, ChevronDown, ExternalLink, Hash } from 'lucide-react';
