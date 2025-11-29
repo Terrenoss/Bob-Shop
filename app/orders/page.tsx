@@ -102,7 +102,7 @@ export default function Page() {
                     className="p-6 cursor-pointer flex flex-col lg:flex-row gap-6 lg:items-center justify-between bg-zinc-900 hover:bg-zinc-800/50 transition-colors"
                     onClick={() => toggleExpand(order.id)}
                 >
-                    <div className="flex flex-wrap gap-x-12 gap-y-4 items-center">
+                    <div className="flex flex-wrap gap-x-4 md:gap-x-12 gap-y-4 items-center">
                         {/* Order Number - Prominent */}
                         <div>
                             <p className="text-xs font-bold text-gray-500 uppercase tracking-wider mb-1 flex items-center gap-1">

@@ -274,7 +274,7 @@ export default function CheckoutPage() {
         </div>
 
         {step === 'shipping' && !isDigitalOrder ? (
-          <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800 shadow-sm space-y-6">
+          <div className="bg-zinc-900 p-4 md:p-8 rounded-2xl border border-zinc-800 shadow-sm space-y-6">
             <h2 className="text-xl font-bold text-white flex items-center gap-2">
                 <Truck className="text-gray-400" /> Shipping Details
             </h2>
@@ -305,7 +305,7 @@ export default function CheckoutPage() {
             <Button className="w-full mt-4 h-12 text-lg" onClick={() => setStep('payment')}>Continue to Payment</Button>
           </div>
         ) : (
-          <div className="bg-zinc-900 p-8 rounded-2xl border border-zinc-800 shadow-sm space-y-6">
+          <div className="bg-zinc-900 p-4 md:p-8 rounded-2xl border border-zinc-800 shadow-sm space-y-6">
             <h2 className="text-xl font-bold mb-4 flex items-center gap-2 text-white">
                 <CreditCard size={20} className="text-gray-400" /> Payment Method
             </h2>

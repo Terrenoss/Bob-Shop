@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useEffect, useState, useMemo, useRef } from 'react';
@@ -151,6 +152,9 @@ export default function HomePage() {
   const [currentPage, setCurrentPage] = useState(1);
   const ITEMS_PER_PAGE = 9;
 
+  // Mobile Filter State
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+
   // Hero Carousel State
   const [heroIndex, setHeroIndex] = useState(0);
 
@@ -292,6 +296,7 @@ export default function HomePage() {
       setPriceRange({ min: '', max: '' });
       setInStockOnly(false);
       setCurrentPage(1);
+      setMobileFiltersOpen(false); // Close mobile drawer
       navigate('/');
   };
 
@@ -310,14 +315,14 @@ export default function HomePage() {
   return (
     <div className="container mx-auto pb-12">
       {/* Category Bar */}
-      <div className="relative bg-zinc-900 border-b border-zinc-800 -mx-4 px-4 sm:mx-0 sm:rounded-xl sm:border mb-8 sticky top-20 z-40 shadow-md flex items-center">
+      <div className="relative bg-zinc-900 border-b border-zinc-800 -mx-4 px-4 sm:mx-0 sm:rounded-xl sm:border mb-8 sticky top-[68px] z-40 shadow-md flex items-center">
           <div className="flex-shrink-0 py-3 pl-2" ref={categoryMenuRef}>
                  <button onClick={() => setIsCategoryMenuOpen(!isCategoryMenuOpen)} className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition-all ${isCategoryMenuOpen ? 'bg-zinc-100 text-black shadow-sm' : 'bg-zinc-950 text-gray-300 border border-zinc-800 hover:bg-zinc-800 hover:text-white'}`}>
-                     <Menu size={16} /> All Categories
+                     <Menu size={16} /> <span className="hidden sm:inline">All Categories</span> <span className="sm:hidden">Cats</span>
                  </button>
                  {isCategoryMenuOpen && (
-                     <div className="absolute top-full left-0 w-full bg-zinc-900 border-x border-b border-zinc-800 rounded-b-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 flex flex-col max-h-[85vh] overflow-y-auto mt-px">
-                         <div className="p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full bg-zinc-900/95 backdrop-blur-md">
+                     <div className="absolute top-full left-0 w-[calc(100vw-32px)] sm:w-full bg-zinc-900 border-x border-b border-zinc-800 rounded-b-xl shadow-2xl overflow-hidden z-50 animate-in fade-in slide-in-from-top-2 flex flex-col max-h-[80vh] overflow-y-auto mt-px">
+                         <div className="p-4 sm:p-8 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 w-full bg-zinc-900/95 backdrop-blur-md">
                              {CATEGORY_TREE.map(cat => {
                                  const Icon = cat.icon;
                                  return (
@@ -340,8 +345,8 @@ export default function HomePage() {
                      </div>
                  )}
           </div>
-          <div className="h-8 w-px bg-zinc-800 mx-4 flex-shrink-0"></div>
-          <div className="flex-1 overflow-x-auto scrollbar-hide py-3 flex items-center gap-2 pr-2">
+          <div className="h-8 w-px bg-zinc-800 mx-4 flex-shrink-0 hidden sm:block"></div>
+          <div className="flex-1 overflow-x-auto scrollbar-hide py-3 flex items-center gap-2 pr-2 ml-4 sm:ml-0">
              {horizontalCategories.map(cat => (
                  <button key={cat} onClick={() => handleCategoryChange(cat)} className={`flex-shrink-0 px-4 py-2 rounded-lg text-sm font-medium transition-all border whitespace-nowrap ${selectedCategory === cat ? 'bg-purple-600 text-white border-purple-500 shadow-lg' : 'border-transparent text-gray-400 hover:text-white hover:bg-zinc-800'}`}>
                      {cat}
@@ -364,10 +369,10 @@ export default function HomePage() {
                         <div className={`inline-flex items-center gap-2 ${activeSlide.accent} bg-zinc-900/50 backdrop-blur px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider border border-white/10 mb-4`}>
                             <ActiveIcon size={14} /> {activeSlide.subtitle}
                         </div>
-                        <h2 className="text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4 drop-shadow-lg">
+                        <h2 className="text-3xl sm:text-4xl md:text-6xl font-extrabold text-white leading-tight mb-4 drop-shadow-lg">
                             {activeSlide.title}
                         </h2>
-                        <p className="text-gray-200 text-lg max-w-lg leading-relaxed shadow-black drop-shadow-md">
+                        <p className="text-gray-200 text-base md:text-lg max-w-lg leading-relaxed shadow-black drop-shadow-md">
                             {activeSlide.desc}
                         </p>
                     </div>
@@ -386,7 +391,7 @@ export default function HomePage() {
                 </div>
 
                 {/* Right Side: Featured Products Mini-Grid */}
-                <div className="lg:w-[450px] flex-shrink-0">
+                <div className="lg:w-[450px] flex-shrink-0 hidden sm:block">
                     <div className="flex justify-between items-center mb-4 px-2">
                         <span className="text-xs font-bold uppercase text-white/70 tracking-wider">Available Now</span>
                         <div className="flex gap-1">
@@ -433,10 +438,33 @@ export default function HomePage() {
       )}
 
       <div className="flex flex-col lg:flex-row gap-8 items-start" ref={productsAnchorRef}>
-        {/* Sidebar Filters */}
-        <aside className="w-full lg:w-64 flex-shrink-0 bg-zinc-900 border border-zinc-800 rounded-xl overflow-hidden shadow-sm sticky top-40">
-            <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center gap-3"><Filter size={18} className="text-purple-400" /><h2 className="font-bold text-gray-100">Filters</h2></div>
-            <div className="p-5 space-y-8">
+        
+        {/* Mobile Filter Toggle */}
+        <div className="w-full lg:hidden mb-4 flex justify-between items-center">
+            <h2 className="text-xl font-bold text-white tracking-tight">{selectedCategory === 'All' ? 'Just For You' : selectedCategory}</h2>
+            <Button variant="secondary" size="sm" onClick={() => setMobileFiltersOpen(true)}>
+                <Filter size={16} className="mr-2" /> Filters
+            </Button>
+        </div>
+
+        {/* Sidebar Filters (Desktop Sticky / Mobile Drawer) */}
+        <aside className={`
+            lg:block lg:w-64 flex-shrink-0 bg-zinc-900 border border-zinc-800 lg:rounded-xl overflow-hidden shadow-sm lg:sticky lg:top-40
+            ${mobileFiltersOpen ? 'fixed inset-0 z-[60] block w-full rounded-none h-full' : 'hidden'}
+        `}>
+            <div className="p-4 bg-zinc-950 border-b border-zinc-800 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                    <Filter size={18} className="text-purple-400" />
+                    <h2 className="font-bold text-gray-100">Filters</h2>
+                </div>
+                {mobileFiltersOpen && (
+                    <button onClick={() => setMobileFiltersOpen(false)} className="p-2 text-gray-400 hover:text-white">
+                        <X size={20} />
+                    </button>
+                )}
+            </div>
+            
+            <div className="p-5 space-y-8 overflow-y-auto h-[calc(100%-60px)] lg:h-auto">
                  <div className="space-y-3">
                     <label className="text-xs font-bold text-gray-500 uppercase tracking-wider">Sort By</label>
                     <select 
@@ -488,7 +516,7 @@ export default function HomePage() {
         </aside>
 
         <main className="flex-1 w-full min-w-0">
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between mb-6 hidden lg:flex">
                 <div className="flex items-center gap-3">
                     <h2 className="text-2xl font-bold text-white tracking-tight">{searchQuery ? `Results for "${searchQuery}"` : selectedCategory === 'All' ? 'Just For You' : selectedCategory}</h2>
                     {!isProductsLoading && <span className="text-xs font-medium text-gray-500 bg-zinc-900 px-2.5 py-1 rounded-full border border-zinc-800">{filteredProducts.length} items</span>}

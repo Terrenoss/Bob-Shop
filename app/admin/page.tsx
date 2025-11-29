@@ -427,29 +427,29 @@ export default function AdminPage() {
   return (
     <div className="space-y-8 pb-20">
       {/* Header & Stats */}
-      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-zinc-900/50 backdrop-blur-sm p-6 rounded-2xl border border-zinc-800 shadow-sm">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 bg-zinc-900/50 backdrop-blur-sm p-4 md:p-6 rounded-2xl border border-zinc-800 shadow-sm">
         <div>
-          <h1 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400 flex items-center gap-3">
-            <Globe className="text-blue-500" size={32} />
+          <h1 className="text-2xl md:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-indigo-400 flex items-center gap-3">
+            <Globe className="text-blue-500" size={28} />
             Admin Dashboard
           </h1>
-          <p className="text-gray-400 mt-1 font-medium">Manage your store, products, and orders.</p>
+          <p className="text-gray-400 mt-1 font-medium text-sm md:text-base">Manage your store, products, and orders.</p>
         </div>
         <div className="flex gap-3">
-             <Button variant="outline" size="sm" onClick={fetchData} className="bg-zinc-800 border-zinc-700 text-gray-300 hover:text-white hover:bg-zinc-700">
+             <Button variant="outline" size="sm" onClick={fetchData} className="bg-zinc-800 border-zinc-700 text-gray-300 hover:text-white hover:bg-zinc-700 w-full sm:w-auto">
                  <RefreshCw size={14} className="mr-2" /> Refresh Data
              </Button>
         </div>
       </div>
 
       {/* KPI Cards & Charts */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 md:gap-6">
         {/* Revenue */}
-        <div className="bg-gradient-to-br from-emerald-900/20 to-teal-900/20 p-6 rounded-2xl border border-emerald-900/30 shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 group">
+        <div className="bg-gradient-to-br from-emerald-900/20 to-teal-900/20 p-4 md:p-6 rounded-2xl border border-emerald-900/30 shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 group">
           <div className="flex justify-between items-start mb-4">
             <div>
                 <p className="text-xs font-bold text-emerald-400 uppercase tracking-wide">Total Revenue</p>
-                <p className="text-3xl font-extrabold text-white mt-1">${stats.revenue.toFixed(2)}</p>
+                <p className="text-2xl md:text-3xl font-extrabold text-white mt-1">${stats.revenue.toFixed(2)}</p>
             </div>
             <div className="p-3 bg-zinc-800 text-emerald-400 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
                 <DollarSign size={24} />
@@ -461,11 +461,11 @@ export default function AdminPage() {
         </div>
 
         {/* Orders */}
-        <div className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 p-6 rounded-2xl border border-blue-900/30 shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 group">
+        <div className="bg-gradient-to-br from-blue-900/20 to-indigo-900/20 p-4 md:p-6 rounded-2xl border border-blue-900/30 shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 group">
           <div className="flex justify-between items-start mb-4">
             <div>
                 <p className="text-xs font-bold text-blue-400 uppercase tracking-wide">Total Orders</p>
-                <p className="text-3xl font-extrabold text-white mt-1">{stats.totalOrders}</p>
+                <p className="text-2xl md:text-3xl font-extrabold text-white mt-1">{stats.totalOrders}</p>
             </div>
             <div className="p-3 bg-zinc-800 text-blue-400 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
                 <Package size={24} />
@@ -477,11 +477,11 @@ export default function AdminPage() {
         </div>
 
         {/* Avg Order Value */}
-        <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 p-6 rounded-2xl border border-purple-900/30 shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 group">
+        <div className="bg-gradient-to-br from-purple-900/20 to-pink-900/20 p-4 md:p-6 rounded-2xl border border-purple-900/30 shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 group">
           <div className="flex justify-between items-start mb-4">
             <div>
                 <p className="text-xs font-bold text-purple-400 uppercase tracking-wide">Avg. Order Value</p>
-                <p className="text-3xl font-extrabold text-white mt-1">${stats.avgOrderValue.toFixed(0)}</p>
+                <p className="text-2xl md:text-3xl font-extrabold text-white mt-1">${stats.avgOrderValue.toFixed(0)}</p>
             </div>
             <div className="p-3 bg-zinc-800 text-purple-400 rounded-xl shadow-sm group-hover:scale-110 transition-transform">
                 <BarChart3 size={24} />
@@ -493,11 +493,11 @@ export default function AdminPage() {
         </div>
 
         {/* Stock Alerts */}
-        <div className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-6 rounded-2xl border border-amber-900/30 shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 group">
+        <div className="bg-gradient-to-br from-amber-900/20 to-orange-900/20 p-4 md:p-6 rounded-2xl border border-amber-900/30 shadow-sm flex flex-col justify-between transition-transform hover:-translate-y-1 group">
           <div className="flex justify-between items-start mb-4">
             <div>
                 <p className="text-xs font-bold text-amber-400 uppercase tracking-wide">Stock Alerts</p>
-                <p className="text-3xl font-extrabold text-white mt-1">{stats.lowStockCount}</p>
+                <p className="text-2xl md:text-3xl font-extrabold text-white mt-1">{stats.lowStockCount}</p>
             </div>
             <div className={`p-3 bg-zinc-800 rounded-xl shadow-sm group-hover:scale-110 transition-transform ${stats.lowStockCount > 0 ? 'text-red-400' : 'text-amber-400'}`}>
                 <AlertTriangle size={24} />
@@ -513,31 +513,6 @@ export default function AdminPage() {
               </div>
           )}
         </div>
-      </div>
-
-      {/* Sales Visualization */}
-      <div className="bg-zinc-900 p-6 rounded-2xl border border-zinc-800 shadow-sm">
-          <div className="flex items-center justify-between mb-6">
-              <h3 className="font-bold text-white flex items-center gap-2">
-                  <TrendingUp size={18} className="text-gray-400" /> Sales Performance (Last 7 Days)
-              </h3>
-              <div className="flex gap-2 text-xs font-medium">
-                  <span className="flex items-center gap-1 text-blue-400"><span className="w-2 h-2 rounded-full bg-blue-500"></span> Online Store</span>
-                  <span className="flex items-center gap-1 text-purple-400"><span className="w-2 h-2 rounded-full bg-purple-500"></span> Dropship Direct</span>
-              </div>
-          </div>
-          <div className="flex items-end gap-2 h-32 w-full">
-              {[40, 65, 45, 80, 55, 90, 70, 85, 60, 95, 75, 50, 65, 80].map((h, i) => (
-                  <div key={i} className="flex-1 flex flex-col justify-end gap-1 group cursor-pointer">
-                      <div className="w-full bg-blue-900/30 rounded-t-sm hover:bg-blue-800/50 transition-all" style={{ height: `${h * 0.6}%` }}></div>
-                      <div className="w-full bg-blue-600 rounded-t-sm hover:bg-blue-500 transition-all relative" style={{ height: `${h}%` }}>
-                          <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-black text-white text-[10px] py-1 px-2 rounded opacity-0 group-hover:opacity-100 transition-opacity border border-zinc-700">
-                              ${h * 10}
-                          </div>
-                      </div>
-                  </div>
-              ))}
-          </div>
       </div>
 
       {/* Tabs */}
@@ -559,56 +534,58 @@ export default function AdminPage() {
         {/* ORDERS TAB */}
         {activeTab === 'orders' && (
             <div className="p-4">
-                <div className="flex justify-between mb-4">
-                    <div className="relative">
+                <div className="flex flex-col md:flex-row justify-between mb-4 gap-4">
+                    <div className="relative w-full md:w-auto">
                         <Search className="absolute left-3 top-2.5 text-gray-400" size={16} />
-                        <input className="pl-10 pr-4 py-2 border border-zinc-800 bg-zinc-950 rounded-lg text-white focus:ring-2 focus:ring-blue-600 outline-none" placeholder="Search orders..." value={orderSearch} onChange={e => setOrderSearch(e.target.value)} />
+                        <input className="w-full md:w-64 pl-10 pr-4 py-2 border border-zinc-800 bg-zinc-950 rounded-lg text-white focus:ring-2 focus:ring-blue-600 outline-none" placeholder="Search orders..." value={orderSearch} onChange={e => setOrderSearch(e.target.value)} />
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
                         {['all', 'pending', 'processing', 'shipped', 'delivered', 'cancelled'].map(s => (
-                            <button key={s} onClick={() => setOrderFilter(s)} className={`px-3 py-1 rounded-full text-xs font-bold uppercase transition-colors ${orderFilter === s ? 'bg-white text-black' : 'bg-zinc-800 text-gray-400 hover:text-white'}`}>{s}</button>
+                            <button key={s} onClick={() => setOrderFilter(s)} className={`px-3 py-1 rounded-full text-xs font-bold uppercase transition-colors whitespace-nowrap ${orderFilter === s ? 'bg-white text-black' : 'bg-zinc-800 text-gray-400 hover:text-white'}`}>{s}</button>
                         ))}
                     </div>
                 </div>
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-zinc-950 text-gray-400 font-bold uppercase text-xs border-b border-zinc-800">
-                        <tr>
-                            <th className="p-4">Order ID</th>
-                            <th className="p-4">Customer</th>
-                            <th className="p-4">Date</th>
-                            <th className="p-4">Total</th>
-                            <th className="p-4">Status</th>
-                            <th className="p-4 text-right">Action</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-800">
-                        {orders.filter(o => (orderFilter === 'all' || o.status === orderFilter) && o.id.includes(orderSearch)).map(order => (
-                            <tr key={order.id} className="hover:bg-zinc-800/50 cursor-pointer transition-colors" onClick={() => openOrderModal(order)}>
-                                <td className="p-4 font-mono font-bold text-blue-400">#{order.id.replace('ord-', '')}</td>
-                                <td className="p-4">
-                                    <div className="font-bold text-white">{order.shippingAddress.name}</div>
-                                    <div className="text-xs text-gray-500">{order.shippingAddress.city}</div>
-                                </td>
-                                <td className="p-4 text-gray-400">{new Date(order.date).toLocaleDateString()}</td>
-                                <td className="p-4 font-bold text-white">${order.total.toFixed(2)}</td>
-                                <td className="p-4">
-                                    <span className={`px-2 py-1 rounded text-xs font-bold uppercase border ${
-                                        order.status === 'delivered' ? 'bg-green-900/20 text-green-400 border-green-900/50' : 
-                                        order.status === 'cancelled' ? 'bg-red-900/20 text-red-400 border-red-900/50' : 
-                                        'bg-yellow-900/20 text-yellow-400 border-yellow-900/50'
-                                    }`}>
-                                        {order.status}
-                                    </span>
-                                </td>
-                                <td className="p-4 text-right">
-                                    <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); openOrderModal(order); }}>
-                                        Manage
-                                    </Button>
-                                </td>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm min-w-[700px]">
+                        <thead className="bg-zinc-950 text-gray-400 font-bold uppercase text-xs border-b border-zinc-800">
+                            <tr>
+                                <th className="p-4">Order ID</th>
+                                <th className="p-4">Customer</th>
+                                <th className="p-4">Date</th>
+                                <th className="p-4">Total</th>
+                                <th className="p-4">Status</th>
+                                <th className="p-4 text-right">Action</th>
                             </tr>
-                        ))}
-                    </tbody>
-                </table>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800">
+                            {orders.filter(o => (orderFilter === 'all' || o.status === orderFilter) && o.id.includes(orderSearch)).map(order => (
+                                <tr key={order.id} className="hover:bg-zinc-800/50 cursor-pointer transition-colors" onClick={() => openOrderModal(order)}>
+                                    <td className="p-4 font-mono font-bold text-blue-400">#{order.id.replace('ord-', '')}</td>
+                                    <td className="p-4">
+                                        <div className="font-bold text-white">{order.shippingAddress.name}</div>
+                                        <div className="text-xs text-gray-500">{order.shippingAddress.city}</div>
+                                    </td>
+                                    <td className="p-4 text-gray-400">{new Date(order.date).toLocaleDateString()}</td>
+                                    <td className="p-4 font-bold text-white">${order.total.toFixed(2)}</td>
+                                    <td className="p-4">
+                                        <span className={`px-2 py-1 rounded text-xs font-bold uppercase border ${
+                                            order.status === 'delivered' ? 'bg-green-900/20 text-green-400 border-green-900/50' : 
+                                            order.status === 'cancelled' ? 'bg-red-900/20 text-red-400 border-red-900/50' : 
+                                            'bg-yellow-900/20 text-yellow-400 border-yellow-900/50'
+                                        }`}>
+                                            {order.status}
+                                        </span>
+                                    </td>
+                                    <td className="p-4 text-right">
+                                        <Button size="sm" variant="secondary" onClick={(e) => { e.stopPropagation(); openOrderModal(order); }}>
+                                            Manage
+                                        </Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         )}
 
@@ -618,52 +595,56 @@ export default function AdminPage() {
                 <div className="flex justify-end mb-4">
                     <Button onClick={handleCreateManualProduct}><Plus size={16} className="mr-2"/> Add Product</Button>
                 </div>
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-zinc-950 text-gray-400 font-bold uppercase text-xs border-b border-zinc-800">
-                        <tr><th className="p-4">Product</th><th className="p-4">Stock</th><th className="p-4">Price</th><th className="p-4 text-right">Action</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-800">
-                        {products.map(p => (
-                            <tr key={p.id} className="hover:bg-zinc-800/50 transition-colors">
-                                <td className="p-4 flex items-center gap-3">
-                                    <img src={p.image} className="w-10 h-10 rounded bg-zinc-800 object-cover border border-zinc-700" />
-                                    <span className="font-medium line-clamp-1 text-white">{p.title}</span>
-                                </td>
-                                <td className="p-4 text-gray-300">{p.stock}</td>
-                                <td className="p-4 text-white">${p.price.toFixed(2)}</td>
-                                <td className="p-4 text-right">
-                                    <div className="flex justify-end gap-2">
-                                        <button onClick={() => handleEditProduct(p)} className="p-2 text-blue-400 hover:bg-blue-900/20 rounded transition-colors"><Edit2 size={16}/></button>
-                                        <button onClick={() => handleDeleteProduct(p.id)} className="p-2 text-red-400 hover:bg-red-900/20 rounded transition-colors"><Trash2 size={16}/></button>
-                                    </div>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm min-w-[600px]">
+                        <thead className="bg-zinc-950 text-gray-400 font-bold uppercase text-xs border-b border-zinc-800">
+                            <tr><th className="p-4">Product</th><th className="p-4">Stock</th><th className="p-4">Price</th><th className="p-4 text-right">Action</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800">
+                            {products.map(p => (
+                                <tr key={p.id} className="hover:bg-zinc-800/50 transition-colors">
+                                    <td className="p-4 flex items-center gap-3">
+                                        <img src={p.image} className="w-10 h-10 rounded bg-zinc-800 object-cover border border-zinc-700" />
+                                        <span className="font-medium line-clamp-1 text-white">{p.title}</span>
+                                    </td>
+                                    <td className="p-4 text-gray-300">{p.stock}</td>
+                                    <td className="p-4 text-white">${p.price.toFixed(2)}</td>
+                                    <td className="p-4 text-right">
+                                        <div className="flex justify-end gap-2">
+                                            <button onClick={() => handleEditProduct(p)} className="p-2 text-blue-400 hover:bg-blue-900/20 rounded transition-colors"><Edit2 size={16}/></button>
+                                            <button onClick={() => handleDeleteProduct(p.id)} className="p-2 text-red-400 hover:bg-red-900/20 rounded transition-colors"><Trash2 size={16}/></button>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         )}
 
         {/* USERS TAB */}
         {activeTab === 'users' && (
             <div className="p-4">
-                <table className="w-full text-left text-sm">
-                    <thead className="bg-zinc-950 text-gray-400 font-bold uppercase text-xs border-b border-zinc-800">
-                        <tr><th className="p-4">Name</th><th className="p-4">Email</th><th className="p-4">Role</th><th className="p-4 text-right">Action</th></tr>
-                    </thead>
-                    <tbody className="divide-y divide-zinc-800">
-                        {allUsers.map(u => (
-                            <tr key={u.id} className="hover:bg-zinc-800/50 transition-colors">
-                                <td className="p-4 font-bold text-white">{u.name}</td>
-                                <td className="p-4 text-gray-400">{u.email}</td>
-                                <td className="p-4"><span className="bg-zinc-800 text-gray-300 px-2 py-1 rounded text-xs uppercase border border-zinc-700">{u.role}</span></td>
-                                <td className="p-4 text-right">
-                                    <Button size="sm" variant="secondary" onClick={() => handleOpenUserModal(u)}>Manage</Button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <div className="overflow-x-auto">
+                    <table className="w-full text-left text-sm min-w-[600px]">
+                        <thead className="bg-zinc-950 text-gray-400 font-bold uppercase text-xs border-b border-zinc-800">
+                            <tr><th className="p-4">Name</th><th className="p-4">Email</th><th className="p-4">Role</th><th className="p-4 text-right">Action</th></tr>
+                        </thead>
+                        <tbody className="divide-y divide-zinc-800">
+                            {allUsers.map(u => (
+                                <tr key={u.id} className="hover:bg-zinc-800/50 transition-colors">
+                                    <td className="p-4 font-bold text-white">{u.name}</td>
+                                    <td className="p-4 text-gray-400">{u.email}</td>
+                                    <td className="p-4"><span className="bg-zinc-800 text-gray-300 px-2 py-1 rounded text-xs uppercase border border-zinc-700">{u.role}</span></td>
+                                    <td className="p-4 text-right">
+                                        <Button size="sm" variant="secondary" onClick={() => handleOpenUserModal(u)}>Manage</Button>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </table>
+                </div>
             </div>
         )}
 
@@ -759,8 +740,8 @@ export default function AdminPage() {
 
         {/* SUPPORT TAB */}
         {activeTab === 'support' && (
-            <div className="h-[600px] flex">
-                <div className="w-64 border-r border-zinc-800 overflow-y-auto bg-zinc-950">
+            <div className="h-[600px] flex flex-col md:flex-row">
+                <div className="w-full md:w-64 border-r border-zinc-800 overflow-y-auto bg-zinc-950 h-1/3 md:h-auto">
                     {chatSessions.map(s => (
                         <div key={s.id} onClick={() => handleSelectChatSession(s)} className={`p-4 border-b border-zinc-800 cursor-pointer hover:bg-zinc-900 transition-colors ${activeChatSession?.id === s.id ? 'bg-zinc-900' : ''}`}>
                             <div className="font-bold text-white">{s.userName}</div>
@@ -769,7 +750,7 @@ export default function AdminPage() {
                         </div>
                     ))}
                 </div>
-                <div className="flex-1 flex flex-col bg-zinc-900">
+                <div className="flex-1 flex flex-col bg-zinc-900 h-2/3 md:h-auto">
                     {activeChatSession ? (
                         <>
                             <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
@@ -828,25 +809,25 @@ export default function AdminPage() {
 
       {/* --- ORDER MANAGER MODAL (Centered & Enhanced) --- */}
       {isOrderModalOpen && selectedOrder && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-            <div className="bg-zinc-900 w-full max-w-6xl max-h-[90vh] rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-zinc-800 animate-in fade-in zoom-in duration-200">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4 overflow-y-auto">
+            <div className="bg-zinc-900 w-full max-w-6xl h-[100dvh] md:h-auto md:rounded-2xl shadow-2xl overflow-hidden flex flex-col border border-zinc-800 animate-in fade-in zoom-in duration-200 my-auto">
                 
                 {/* Header */}
-                <div className="p-6 border-b border-zinc-800 bg-zinc-900 flex justify-between items-center">
+                <div className="p-4 md:p-6 border-b border-zinc-800 bg-zinc-900 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold text-white">Order #{selectedOrder.id}</h2>
+                        <h2 className="text-xl sm:text-2xl font-bold text-white">Order #{selectedOrder.id}</h2>
                         <div className="flex gap-2 mt-1">
                             <span className="px-2 py-0.5 bg-blue-900/30 text-blue-400 rounded text-xs font-bold uppercase border border-blue-900/50">{selectedOrder.status}</span>
                             <span className="text-sm text-gray-500">{new Date(selectedOrder.date).toLocaleString()}</span>
                         </div>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 self-end sm:self-auto">
                         <Button variant="secondary" size="sm" onClick={() => toast.success('Printing...')}><Printer size={16} className="mr-2"/> Print</Button>
                         <button onClick={closeOrderModal} className="p-2 hover:bg-zinc-800 rounded-full text-gray-400 hover:text-white transition-colors"><X size={24}/></button>
                     </div>
                 </div>
 
-                <div className="flex-1 overflow-y-auto p-6 bg-black/20 custom-scrollbar">
+                <div className="flex-1 overflow-y-auto p-4 md:p-6 bg-black/20 custom-scrollbar md:max-h-[80vh]">
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         
                         {/* LEFT COLUMN: Items & Fulfillment */}
@@ -866,8 +847,8 @@ export default function AdminPage() {
                                                 <img src={item.image} className="w-16 h-16 rounded-lg object-cover border border-zinc-700 bg-zinc-800" />
                                                 <div className="flex-1">
                                                     <div className="flex justify-between">
-                                                        <h4 className="font-bold text-white">{item.title}</h4>
-                                                        <span className="font-bold text-gray-300">${item.price} x {item.quantity}</span>
+                                                        <h4 className="font-bold text-white line-clamp-1">{item.title}</h4>
+                                                        <span className="font-bold text-gray-300 text-sm">${item.price} x {item.quantity}</span>
                                                     </div>
                                                     <div className="text-xs text-gray-500 mt-1">
                                                         {item.selectedVariants && Object.values(item.selectedVariants).join(', ')}
@@ -876,7 +857,7 @@ export default function AdminPage() {
                                             </div>
 
                                             {/* Fulfillment Console (Keys & Proofs) */}
-                                            <div className="bg-blue-900/10 p-4 rounded-lg border border-blue-900/30 grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="bg-blue-900/10 p-4 rounded-lg border border-blue-900/30 grid grid-cols-1 gap-4">
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-blue-400 uppercase flex items-center gap-1"><Key size={10}/> Digital Key / Content</label>
                                                     <input 
@@ -889,9 +870,9 @@ export default function AdminPage() {
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-blue-400 uppercase flex items-center gap-1"><Upload size={10}/> Proof of Delivery (Image)</label>
                                                     <div className="flex gap-2 items-center">
-                                                        <input type="file" className="text-xs text-gray-500" onChange={(e) => handleItemProofUpload(idx, e)} />
+                                                        <input type="file" className="text-xs text-gray-500 w-full" onChange={(e) => handleItemProofUpload(idx, e)} />
                                                         {item.fulfillmentProofImage && (
-                                                            <a href={item.fulfillmentProofImage} target="_blank" className="text-xs text-blue-400 underline flex items-center gap-1"><Eye size={10}/> View</a>
+                                                            <a href={item.fulfillmentProofImage} target="_blank" className="text-xs text-blue-400 underline flex items-center gap-1 flex-shrink-0"><Eye size={10}/> View</a>
                                                         )}
                                                     </div>
                                                 </div>
@@ -1030,8 +1011,8 @@ export default function AdminPage() {
 
       {/* --- USER MANAGEMENT MODAL --- */}
       {isUserModalOpen && selectedUser && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200 max-h-[90vh] overflow-y-auto custom-scrollbar">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4">
+              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-lg h-[100dvh] md:h-auto md:rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200 overflow-y-auto custom-scrollbar flex flex-col">
                   <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold text-white flex items-center gap-2">
                           <UserIcon size={20} /> Manage User
@@ -1039,7 +1020,7 @@ export default function AdminPage() {
                       <button onClick={() => setIsUserModalOpen(false)} className="text-gray-500 hover:text-white"><X size={20} /></button>
                   </div>
                   
-                  <div className="space-y-6">
+                  <div className="space-y-6 flex-grow">
                       {/* Edit Fields */}
                       <div className="space-y-4">
                         <div className="space-y-1">
@@ -1149,8 +1130,8 @@ export default function AdminPage() {
 
       {/* --- COUPON MODAL --- */}
       {isCouponModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4">
+              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md h-[100dvh] md:h-auto md:rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200 flex flex-col justify-center">
                   <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold text-white flex items-center gap-2">
                           <Ticket size={20} /> {editingCoupon.id ? 'Edit Coupon' : 'Create Coupon'}
@@ -1190,8 +1171,8 @@ export default function AdminPage() {
 
       {/* --- CATEGORY MODAL --- */}
       {isCategoryModalOpen && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-4">
-              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200">
+          <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 backdrop-blur-sm p-0 md:p-4">
+              <div className="bg-zinc-900 border border-zinc-800 w-full max-w-md h-[100dvh] md:h-auto md:rounded-xl shadow-xl p-6 animate-in fade-in zoom-in duration-200 flex flex-col justify-center">
                   <div className="flex justify-between items-center mb-6">
                       <h3 className="text-xl font-bold text-white flex items-center gap-2">
                           <Grid size={20} /> {editingCategory.id ? 'Edit Category' : 'Create Category'}

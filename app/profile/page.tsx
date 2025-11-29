@@ -1,3 +1,4 @@
+
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
@@ -158,11 +159,11 @@ export default function Page() {
       </div>
 
       <div className="flex flex-col md:flex-row gap-8">
-          <div className="w-full md:w-64 flex-shrink-0 space-y-2">
-              <button onClick={() => setActiveTab('general')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'general' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><User size={18} /> General</button>
-              <button onClick={() => setActiveTab('security')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'security' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><Lock size={18} /> Security</button>
-              <button onClick={() => setActiveTab('address')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'address' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><MapPin size={18} /> Address</button>
-              <button onClick={() => setActiveTab('support')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all ${activeTab === 'support' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><MessageSquare size={18} /> Support Chat</button>
+          <div className="w-full md:w-64 flex-shrink-0 flex flex-row md:flex-col gap-2 overflow-x-auto pb-2 md:pb-0 scrollbar-hide">
+              <button onClick={() => setActiveTab('general')} className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'general' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><User size={18} /> General</button>
+              <button onClick={() => setActiveTab('security')} className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'security' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><Lock size={18} /> Security</button>
+              <button onClick={() => setActiveTab('address')} className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'address' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><MapPin size={18} /> Address</button>
+              <button onClick={() => setActiveTab('support')} className={`flex-shrink-0 flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all whitespace-nowrap ${activeTab === 'support' ? 'bg-zinc-800 text-white shadow-md border border-zinc-700' : 'text-gray-400 hover:text-white hover:bg-zinc-900'}`}><MessageSquare size={18} /> Support Chat</button>
           </div>
 
           <div className="flex-1 bg-zinc-900 rounded-2xl border border-zinc-800 p-8 shadow-sm min-h-[500px] flex flex-col relative overflow-hidden">
@@ -181,7 +182,7 @@ export default function Page() {
                                   <p className="text-xl font-bold text-white">{userOrders.length}</p>
                               </div>
                           </div>
-                          <div className="bg-zinc-900 p-4 rounded-xl border border-zinc-800 flex items-center gap-3">
+                          <div className="bg-zinc-950 p-4 rounded-xl border border-zinc-800 flex items-center gap-3">
                               <div className="p-2 bg-green-900/20 text-green-400 rounded-lg">
                                   <DollarSign size={20} />
                               </div>

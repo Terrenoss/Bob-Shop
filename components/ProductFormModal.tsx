@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useRef } from 'react';
 import { Product, ProductSource, ProductVariant, ProductSection } from '../types';
 import { Button } from './ui/Button';
@@ -135,7 +134,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
               reader.onloadend = () => {
                   setFormData(prev => ({ ...prev, images: [...(prev.images || []), reader.result as string] }));
               };
-              reader.readAsDataURL(file);
+              // Explicitly cast file to Blob to satisfy TypeScript check if inferring unknown
+              reader.readAsDataURL(file as Blob);
           });
       }
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -218,22 +218,22 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
           onClick={() => setActiveTab(id)}
           className={`flex-1 py-4 text-sm font-bold transition-all border-b-2 flex items-center justify-center gap-2 ${activeTab === id ? 'border-blue-500 text-blue-400 bg-zinc-800/50' : 'border-transparent text-gray-500 hover:text-white hover:bg-zinc-800/30'}`}
       >
-          <Icon size={16} /> {label}
+          <Icon size={16} /> <span className="hidden sm:inline">{label}</span>
       </button>
   );
 
   return (
-    <div className="fixed inset-0 bg-black/90 z-[80] flex items-center justify-center p-4 backdrop-blur-md">
-      <div className="bg-zinc-950 w-full max-w-5xl h-[90vh] rounded-2xl shadow-2xl flex flex-col border border-zinc-800 animate-in zoom-in-95 duration-200">
+    <div className="fixed inset-0 bg-black/90 z-[80] flex items-center justify-center p-0 md:p-4 backdrop-blur-md">
+      <div className="bg-zinc-950 w-full max-w-5xl h-[100dvh] md:h-[90vh] md:rounded-2xl shadow-2xl flex flex-col border border-zinc-800 animate-in zoom-in-95 duration-200">
         
         {/* Header */}
-        <div className="p-6 border-b border-zinc-800 bg-zinc-950 flex justify-between items-center rounded-t-2xl">
+        <div className="p-4 md:p-6 border-b border-zinc-800 bg-zinc-950 flex justify-between items-center rounded-t-2xl">
           <div>
               <h3 className="text-xl font-bold text-white flex items-center gap-3">
                   {initialData ? <Edit2 size={24} className="text-blue-500" /> : <PlusCircleIcon size={24} className="text-green-500" />} 
                   {initialData ? 'Edit Product' : 'New Product'}
               </h3>
-              <p className="text-gray-500 text-sm mt-1">Configure product details, pricing, and inventory.</p>
+              <p className="text-gray-500 text-sm mt-1 hidden sm:block">Configure product details, pricing, and inventory.</p>
           </div>
           <button onClick={onClose} className="p-2 bg-zinc-900 rounded-full text-gray-400 hover:text-white hover:bg-zinc-800 transition-colors">
             <X size={24} />
@@ -244,13 +244,13 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
             {/* Tabs Navigation */}
             <div className="flex border-b border-zinc-800 bg-zinc-900/50">
                 <TabButton id="overview" label="Overview" icon={LayoutGrid} />
-                <TabButton id="pricing" label="Pricing & Inventory" icon={DollarSign} />
-                <TabButton id="delivery" label="Delivery & Advanced" icon={Settings} />
-                <TabButton id="content" label="Rich Content" icon={FileText} />
+                <TabButton id="pricing" label="Pricing" icon={DollarSign} />
+                <TabButton id="delivery" label="Settings" icon={Settings} />
+                <TabButton id="content" label="Content" icon={FileText} />
             </div>
 
             {/* Scrollable Content Area */}
-            <div className="flex-1 overflow-y-auto p-8 custom-scrollbar bg-zinc-950/50">
+            <div className="flex-1 overflow-y-auto p-4 md:p-8 custom-scrollbar bg-zinc-950/50">
                 
                 {/* --- OVERVIEW TAB --- */}
                 {activeTab === 'overview' && (
@@ -262,26 +262,26 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                             <div className="grid grid-cols-2 gap-4 mb-6">
                                 <div 
                                     onClick={() => handleTypeChange(false)}
-                                    className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${!formData.isDigital ? 'border-blue-600 bg-blue-900/10' : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'}`}
+                                    className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex flex-col sm:flex-row items-center gap-4 ${!formData.isDigital ? 'border-blue-600 bg-blue-900/10' : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'}`}
                                 >
                                     <div className={`p-3 rounded-full ${!formData.isDigital ? 'bg-blue-600 text-white' : 'bg-zinc-800 text-gray-500'}`}><Box size={24} /></div>
-                                    <div>
-                                        <h4 className={`font-bold ${!formData.isDigital ? 'text-white' : 'text-gray-400'}`}>Physical Product</h4>
-                                        <p className="text-xs text-gray-500">Shipped items requiring delivery.</p>
+                                    <div className="text-center sm:text-left">
+                                        <h4 className={`font-bold ${!formData.isDigital ? 'text-white' : 'text-gray-400'}`}>Physical</h4>
+                                        <p className="text-xs text-gray-500">Shipped items</p>
                                     </div>
-                                    {!formData.isDigital && <CheckCircle2 size={24} className="ml-auto text-blue-500" />}
+                                    {!formData.isDigital && <CheckCircle2 size={24} className="ml-auto text-blue-500 hidden sm:block" />}
                                 </div>
 
                                 <div 
                                     onClick={() => handleTypeChange(true)}
-                                    className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${formData.isDigital ? 'border-purple-600 bg-purple-900/10' : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'}`}
+                                    className={`cursor-pointer p-4 rounded-xl border-2 transition-all flex flex-col sm:flex-row items-center gap-4 ${formData.isDigital ? 'border-purple-600 bg-purple-900/10' : 'border-zinc-800 bg-zinc-900 hover:border-zinc-700'}`}
                                 >
                                     <div className={`p-3 rounded-full ${formData.isDigital ? 'bg-purple-600 text-white' : 'bg-zinc-800 text-gray-500'}`}><Zap size={24} /></div>
-                                    <div>
-                                        <h4 className={`font-bold ${formData.isDigital ? 'text-white' : 'text-gray-400'}`}>Digital Product</h4>
-                                        <p className="text-xs text-gray-500">Keys, links, or downloadable content.</p>
+                                    <div className="text-center sm:text-left">
+                                        <h4 className={`font-bold ${formData.isDigital ? 'text-white' : 'text-gray-400'}`}>Digital</h4>
+                                        <p className="text-xs text-gray-500">Keys / Downloads</p>
                                     </div>
-                                    {formData.isDigital && <CheckCircle2 size={24} className="ml-auto text-purple-500" />}
+                                    {formData.isDigital && <CheckCircle2 size={24} className="ml-auto text-purple-500 hidden sm:block" />}
                                 </div>
                             </div>
 
@@ -540,7 +540,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                             <div className="bg-purple-900/10 border border-purple-500/30 rounded-2xl p-6">
                                 <h4 className="font-bold text-purple-400 mb-4 flex items-center gap-2"><Zap size={20}/> Digital Delivery Setup</h4>
                                 <div className="space-y-4">
-                                    <div className="grid grid-cols-2 gap-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <div>
                                             <label className="text-xs font-bold text-purple-300 uppercase mb-1 block">Delivery Timeframe Label</label>
                                             <input 
@@ -578,8 +578,8 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                         <div className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6">
                             <h4 className="font-bold text-white mb-4 flex items-center gap-2"><Layers size={20}/> Product Variants</h4>
                             
-                            <div className="flex gap-3 items-end mb-6">
-                                <div className="flex-1">
+                            <div className="flex flex-col sm:flex-row gap-3 items-end mb-6">
+                                <div className="w-full sm:flex-1">
                                     <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Variant Name</label>
                                     <input 
                                         className="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-white focus:border-blue-600 outline-none"
@@ -588,7 +588,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         onChange={e => setNewVariantName(e.target.value)}
                                     />
                                 </div>
-                                <div className="flex-[2]">
+                                <div className="w-full sm:flex-[2]">
                                     <label className="text-xs font-bold text-gray-500 uppercase mb-1 block">Options (Comma Separated)</label>
                                     <input 
                                         className="w-full px-3 py-2 bg-black border border-zinc-700 rounded-lg text-white focus:border-blue-600 outline-none"
@@ -597,7 +597,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         onChange={e => setNewVariantOptions(e.target.value)}
                                     />
                                 </div>
-                                <Button type="button" size="sm" variant="secondary" onClick={addVariant} className="h-10 px-6">Add</Button>
+                                <Button type="button" size="sm" variant="secondary" onClick={addVariant} className="h-10 px-6 w-full sm:w-auto">Add</Button>
                             </div>
 
                             <div className="space-y-2">
@@ -605,7 +605,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                     <div key={idx} className="flex items-center justify-between bg-zinc-950 p-3 rounded-lg border border-zinc-800">
                                         <div className="flex items-center gap-3">
                                             <span className="font-bold text-white bg-zinc-800 px-2 py-1 rounded text-xs uppercase">{v.name}</span>
-                                            <div className="flex gap-1">
+                                            <div className="flex gap-1 flex-wrap">
                                                 {v.options.map(opt => (
                                                     <span key={opt} className="text-xs text-gray-400 border border-zinc-800 px-2 py-0.5 rounded-full">{opt}</span>
                                                 ))}
@@ -710,7 +710,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                                         value={newSection.content}
                                         onChange={e => setNewSection({...newSection, content: e.target.value})}
                                     />
-                                    <div className="flex gap-4">
+                                    <div className="flex flex-col sm:flex-row gap-4">
                                         <div 
                                             className="flex-1 border-2 border-dashed border-zinc-800 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-600 hover:bg-zinc-900 transition-colors h-12"
                                             onClick={() => sectionImageInputRef.current?.click()}
@@ -733,7 +733,7 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
             </div>
 
             {/* Footer */}
-            <div className="p-6 border-t border-zinc-800 bg-zinc-950 flex justify-end gap-4 rounded-b-2xl">
+            <div className="p-4 md:p-6 border-t border-zinc-800 bg-zinc-950 flex justify-end gap-4 rounded-b-2xl">
                 <Button type="button" variant="secondary" onClick={onClose} className="h-12 px-6">Cancel</Button>
                 <Button type="submit" isLoading={isLoading} className="h-12 px-8 text-lg font-bold">
                     {initialData ? 'Save Changes' : 'Create Product'}
