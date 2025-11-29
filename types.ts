@@ -153,24 +153,10 @@ export interface Order {
   internalNotes?: string; // For admin use
 }
 
-export interface CarouselSlide {
-  id: string;
-  title: string;
-  subtitle: string;
-  desc: string;
-  iconName: string; // Lucide icon name
-  backgroundImage?: string;
-  tags: string[];
-  colorClass: string; // Tailwind gradient classes
-  accentClass: string; // Tailwind text color
-  categoryFilter: string; // Product category to display
-}
-
 export interface StoreSettings {
   shippingCost: number;
   taxRate: number; // Decimal e.g. 0.20 for 20%
   carouselInterval: number; // Milliseconds for homepage carousel
-  carouselSlides: CarouselSlide[];
 }
 
 // Notifications & Chat
