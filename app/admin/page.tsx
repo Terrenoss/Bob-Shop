@@ -1092,12 +1092,37 @@ export default function AdminPage() {
                                                 </div>
                                                 <div className="space-y-1">
                                                     <label className="text-[10px] font-bold text-blue-400 uppercase flex items-center gap-1"><Upload size={10}/> Proof of Delivery (Image)</label>
-                                                    <div className="flex gap-2 items-center">
-                                                        <input type="file" className="text-xs text-gray-500 w-full" onChange={(e) => handleItemProofUpload(idx, e)} />
-                                                        {item.fulfillmentProofImage && (
-                                                            <a href={item.fulfillmentProofImage} target="_blank" className="text-xs text-blue-400 underline flex items-center gap-1 flex-shrink-0"><Eye size={10}/> View</a>
-                                                        )}
-                                                    </div>
+                                                    
+                                                    {item.fulfillmentProofImage ? (
+                                                        <div className="flex items-center gap-3 bg-black/40 p-2 rounded border border-blue-500/30">
+                                                            <div className="relative group w-10 h-10 flex-shrink-0 cursor-pointer" onClick={() => window.open(item.fulfillmentProofImage, '_blank')}>
+                                                                <img src={item.fulfillmentProofImage} className="w-full h-full object-cover rounded border border-blue-500/50" />
+                                                                <div className="absolute inset-0 bg-black/50 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity rounded">
+                                                                    <Eye size={14} className="text-white"/>
+                                                                </div>
+                                                            </div>
+                                                            <div className="flex-grow min-w-0">
+                                                                <p className="text-xs text-blue-300 font-bold truncate">Image Uploaded</p>
+                                                                <label className="text-[10px] text-gray-400 hover:text-white cursor-pointer underline transition-colors">
+                                                                    Change File
+                                                                    <input type="file" className="hidden" accept="image/*" onChange={(e) => handleItemProofUpload(idx, e)} />
+                                                                </label>
+                                                            </div>
+                                                            <button 
+                                                                onClick={() => handleItemFieldChange(idx, 'fulfillmentProofImage', '')}
+                                                                className="text-red-400 hover:text-red-300 p-1.5 hover:bg-red-900/20 rounded transition-colors"
+                                                                title="Remove image"
+                                                            >
+                                                                <X size={14} />
+                                                            </button>
+                                                        </div>
+                                                    ) : (
+                                                        <label className="flex items-center justify-center gap-2 px-3 py-3 bg-zinc-950/50 border border-dashed border-blue-900/50 hover:border-blue-500 text-gray-500 hover:text-blue-400 rounded-lg text-xs cursor-pointer transition-all">
+                                                            <Upload size={14} />
+                                                            <span>Upload Image</span>
+                                                            <input type="file" className="hidden" accept="image/*" onChange={(e) => handleItemProofUpload(idx, e)} />
+                                                        </label>
+                                                    )}
                                                 </div>
                                             </div>
                                         </div>
@@ -1110,6 +1135,32 @@ export default function AdminPage() {
                                 <h3 className="font-bold text-gray-200 mb-4">Tracking & History</h3>
                                 <OrderTimeline order={selectedOrder} />
                                 
+                                {/* Detailed History Log */}
+                                <div className="mt-6 pt-6 border-t border-zinc-800">
+                                    <h4 className="text-xs font-bold text-gray-500 uppercase mb-4 flex items-center gap-2">
+                                        <List size={14}/> Detailed History
+                                    </h4>
+                                    <div className="space-y-4 relative border-l-2 border-zinc-800 ml-2 pl-6 max-h-60 overflow-y-auto custom-scrollbar pr-2">
+                                        {selectedOrder.statusHistory?.slice().reverse().map((history, idx) => (
+                                            <div key={idx} className="relative">
+                                                <div className="absolute -left-[29px] top-1.5 w-3 h-3 bg-zinc-700 rounded-full border-2 border-zinc-900"></div>
+                                                <p className="text-sm text-gray-300 font-medium">
+                                                    {history.note}
+                                                </p>
+                                                <div className="flex items-center gap-3 mt-1 text-xs text-gray-500">
+                                                    <span>{new Date(history.date).toLocaleString()}</span>
+                                                    {history.location && (
+                                                        <span className="flex items-center gap-1"><MapPin size={10} /> {history.location}</span>
+                                                    )}
+                                                    {history.isTrackingUpdate && (
+                                                        <span className="bg-blue-900/30 text-blue-400 px-1.5 py-0.5 rounded text-[10px] uppercase font-bold">Carrier Update</span>
+                                                    )}
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
                                 <div className="mt-6 pt-6 border-t border-zinc-800">
                                     <h4 className="text-xs font-bold text-gray-500 uppercase mb-3">Add Tracking Update / Note</h4>
                                     <div className="flex flex-col gap-3">
@@ -1189,6 +1240,15 @@ export default function AdminPage() {
                                             value={selectedOrder.trackingNumber || ''} 
                                             onChange={e => handleSaveOrderChanges({ trackingNumber: e.target.value })}
                                             placeholder="e.g. 1Z999..."
+                                        />
+                                    </div>
+                                    <div>
+                                        <label className="text-xs font-bold text-gray-500">Tracking URL</label>
+                                        <input 
+                                            className="w-full border border-zinc-700 bg-zinc-950 rounded px-2 py-1.5 text-sm text-white focus:border-blue-600 outline-none" 
+                                            value={selectedOrder.trackingUrl || ''} 
+                                            onChange={e => handleSaveOrderChanges({ trackingUrl: e.target.value })}
+                                            placeholder="https://..."
                                         />
                                     </div>
                                 </div>

@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import React, { useEffect, useState } from 'react';
@@ -198,17 +199,37 @@ export default function Page() {
                         <div className="px-6 py-4 bg-zinc-900 border-b border-zinc-800 flex flex-wrap items-center justify-between gap-4">
                              <div className="flex items-center gap-4">
                                 {order.trackingNumber ? (
-                                    <div className="flex items-center gap-3 bg-blue-900/10 border border-blue-900/30 px-4 py-2 rounded-lg">
-                                        <Truck size={18} className="text-blue-400" />
-                                        <div>
-                                            <p className="text-xs text-blue-400 font-bold uppercase">Tracking Number</p>
-                                            <div className="flex items-center gap-2">
-                                                <span className="font-mono font-medium text-gray-200">{order.trackingNumber}</span>
-                                                <span className="text-xs text-gray-500">({order.carrier || 'Standard'})</span>
-                                                <ExternalLink size={12} className="text-blue-400" />
+                                    order.trackingUrl ? (
+                                        <a 
+                                            href={order.trackingUrl} 
+                                            target="_blank" 
+                                            rel="noopener noreferrer" 
+                                            className="flex items-center gap-3 bg-blue-900/10 border border-blue-900/30 px-4 py-2 rounded-lg hover:bg-blue-900/20 transition-colors group/tracking"
+                                        >
+                                            <Truck size={18} className="text-blue-400" />
+                                            <div>
+                                                <p className="text-xs text-blue-400 font-bold uppercase flex items-center gap-1">
+                                                    Tracking Number <ExternalLink size={10} />
+                                                </p>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-mono font-medium text-gray-200 group-hover/tracking:text-white underline decoration-blue-500/50 underline-offset-2">{order.trackingNumber}</span>
+                                                    <span className="text-xs text-gray-500">({order.carrier || 'Standard'})</span>
+                                                </div>
+                                            </div>
+                                        </a>
+                                    ) : (
+                                        <div className="flex items-center gap-3 bg-blue-900/10 border border-blue-900/30 px-4 py-2 rounded-lg">
+                                            <Truck size={18} className="text-blue-400" />
+                                            <div>
+                                                <p className="text-xs text-blue-400 font-bold uppercase">Tracking Number</p>
+                                                <div className="flex items-center gap-2">
+                                                    <span className="font-mono font-medium text-gray-200">{order.trackingNumber}</span>
+                                                    <span className="text-xs text-gray-500">({order.carrier || 'Standard'})</span>
+                                                    <ExternalLink size={12} className="text-blue-400 opacity-50" />
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
+                                    )
                                 ) : (
                                     <div className="flex items-center gap-2 text-sm text-gray-500 italic bg-zinc-800/50 px-3 py-1.5 rounded-lg border border-zinc-800">
                                         <Truck size={16} />

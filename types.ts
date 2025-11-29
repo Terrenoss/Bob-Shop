@@ -148,6 +148,7 @@ export interface Order {
   billingAddress?: Address;
   
   trackingNumber?: string;
+  trackingUrl?: string; // URL for direct tracking
   carrier?: string;
   paymentMethod?: string;
   internalNotes?: string; // For admin use
